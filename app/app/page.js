@@ -88,6 +88,23 @@ export default function Home() {
     agenticRef.current = false;
   }
 
+  function startOver() {
+    setImage(null);
+    setImageBase64(null);
+    setSymptom("");
+    setParts([]);
+    setResult(null);
+    setDiagram(null);
+    setClip(null);
+    setClipBase64(null);
+    setMotion(null);
+    setNotice(null);
+    setAgentic(false);
+    agenticRef.current = false;
+    setSegmented(false);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
   function selectDomain(id) {
     if (id === domain) return;
     setSegmented(false);
@@ -376,7 +393,7 @@ export default function Home() {
           const res = await fetch("/api/transcribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ audioBase64: wavDataUrl })
+            body: JSON.stringify({ audioBase64: wavDataUrl, domain })
           });
           const data = await res.json();
           if (data.error) throw new Error(data.error);
@@ -670,7 +687,7 @@ export default function Home() {
             <div className="card-head">
               <span className="card-num">3</span>
               <div className="card-head-text">
-                <h2 id="fix-h">{t("Repair plan", "How to fix am")}</h2>
+                <h2 id="fix-h">{t("Repair plan", "How to fix am")} {(result.fallback || result.demo) && <span className="lvl lvl-mid">offline demo</span>}</h2>
               </div>
             </div>
             <div className="verdict">
@@ -742,6 +759,9 @@ export default function Home() {
                 <figcaption>{t("AI-generated guide. Always confirm against the real part.", "AI draw am. Confirm with real part.")}</figcaption>
               </figure>
             )}
+            <div style={{ textAlign: "center", marginTop: 6 }}>
+              <button className="link-btn" onClick={startOver}>{t("Start over", "Start again")}</button>
+            </div>
 
             {result.shop_cost_naira > 0 && (
               <div className="savings-band">

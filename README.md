@@ -19,7 +19,7 @@ Built for the Meta Global AI Developer Hackathon (Indie track, Build for Your Wo
 1. **Photo** → SAM 3.1 segments parts, boxes drawn on your photo. Spark first reads your symptom and picks *which* parts to segment (agentic routing).
 2. **Symptom** → typed or Pidgin voice (auto-converted to 16kHz WAV for Muse Voice Transcribe).
 3. **Fix** → Muse Spark (vision + strict JSON schema) returns diagnosis, steps, tools, parts with Naira prices, rewinder-vs-DIY savings, and safety warnings.
-4. **Extras** → Muse Image repair diagram, WhatsApp share, and a Modal-powered **motion check**: record 3s of a running engine, SAM tracks it frame-by-frame, Spark judges vibration + smoke.
+4. **Extras** → Muse Image repair diagram, WhatsApp share, and a Modal-powered **motion check**: record 3s of a running engine, SAM tracks it frame-by-frame, Spark judges vibration + smoke. Motion runs async (submit → poll) so serverless timeouts never force a mock.
 
 Every route falls back to offline results if a live API is unreachable, so demos never die on bad network.
 
