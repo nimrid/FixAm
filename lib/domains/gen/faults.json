@@ -1,0 +1,184 @@
+[
+  {
+    "id": "carb-blocked",
+    "diagnosis_en": "Blocked carburetor + dirty spark plug. Engine coughs but won't catch.",
+    "diagnosis_pidgin": "Carburetor block, spark plug dirty. Gen dey cough but e no gree catch.",
+    "steps_en": [
+      "Turn off gen, close fuel valve, let it cool 10 mins.",
+      "Remove spark plug, clean with wire brush or replace.",
+      "Drain old fuel from carburetor bowl screw.",
+      "Clean air filter - wash foam, dry, light oil.",
+      "Open fuel valve, choke on, pull starter firmly."
+    ],
+    "steps_pidgin": [
+      "Off gen, lock fuel valve, make e cool 10 mins.",
+      "Comot spark plug, brush am well or buy new one.",
+      "Drain old fuel from carburetor bottom screw.",
+      "Wash air filter foam, dry am, put small oil.",
+      "Open fuel valve, choke on, pull rope well-well."
+    ],
+    "tools": [
+      "Plug spanner",
+      "Wire brush",
+      "Screwdriver",
+      "Clean rag"
+    ],
+    "needed_parts": [
+      "spark-plug",
+      "air-filter"
+    ],
+    "danger_en": "No smoking near fuel. Let engine cool - exhaust burns. Work outside.",
+    "danger_pidgin": "No smoke near fuel o. Make gen cool - exhaust dey burn. Do am outside.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 25000
+  },
+  {
+    "id": "black-smoke",
+    "diagnosis_en": "Black smoke = too much fuel, dirty air filter or choked carburetor.",
+    "diagnosis_pidgin": "Black smoke mean say fuel too much, air filter dirty or carburetor wahala.",
+    "steps_en": [
+      "Check choke is OFF after warm-up.",
+      "Remove and clean air filter thoroughly.",
+      "Drain carburetor bowl, check float needle.",
+      "Replace spark plug if black/sooty.",
+      "Run gen on half load 10 mins to clear."
+    ],
+    "steps_pidgin": [
+      "Check choke - off am after gen warm.",
+      "Comot air filter, wash am well-well.",
+      "Drain carburetor, check float needle.",
+      "If plug black, change am.",
+      "Run gen with small load 10 mins make e clear."
+    ],
+    "tools": [
+      "Screwdriver",
+      "Plug spanner"
+    ],
+    "needed_parts": [
+      "air-filter",
+      "spark-plug"
+    ],
+    "danger_en": "Hot exhaust. Don't breathe smoke. Outside only.",
+    "danger_pidgin": "Exhaust hot. No breathe smoke. Outside only.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 20000
+  },
+  {
+    "id": "white-smoke",
+    "diagnosis_en": "White smoke = too much oil or oil in combustion chamber.",
+    "diagnosis_pidgin": "White smoke mean say oil too much or oil enter where fire dey burn.",
+    "steps_en": [
+      "Turn off gen immediately, check oil level dipstick.",
+      "Drain excess oil to correct level (don't overfill).",
+      "Clean or replace air filter if oily.",
+      "Run 5 mins - if smoke continues, stop.",
+      "If smoke persists, rings/valves may be worn - take to shop."
+    ],
+    "steps_pidgin": [
+      "Off gen now-now, check oil level.",
+      "Drain oil wey too much - no full am pass mark.",
+      "Clean air filter if oil don touch am.",
+      "Run 5 mins - if smoke still dey, stop am.",
+      "If e no stop, engine don chop ring - carry go rewinder."
+    ],
+    "tools": [
+      "Oil drain pan",
+      "Funnel",
+      "Rag"
+    ],
+    "needed_parts": [
+      "engine-oil",
+      "air-filter"
+    ],
+    "danger_en": "Hot oil burns. Don't run with low oil - engine will seize.",
+    "danger_pidgin": "Hot oil dey burn. No run gen if oil low - engine go knock.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 30000
+  },
+  {
+    "id": "no-output",
+    "diagnosis_en": "Engine runs but no power output - breaker tripped, AVR or brush fault.",
+    "diagnosis_pidgin": "Gen dey run but e no bring light - breaker trip, AVR or brush wahala.",
+    "steps_en": [
+      "Unplug all loads, reset AC breaker button.",
+      "Check AVR fuse/wires behind control panel.",
+      "Test with small load like phone charger + bulb.",
+      "If still no output, AVR likely dead.",
+      "AVR swap is 15 mins but needs care - consider shop."
+    ],
+    "steps_pidgin": [
+      "Comot everything wey you plug, press breaker button.",
+      "Check AVR fuse/wire for back of panel.",
+      "Test with phone charger + bulb.",
+      "If light still no come, AVR don die.",
+      "To change AVR easy but e get as e be - fit carry go shop."
+    ],
+    "tools": [
+      "Screwdriver",
+      "Multimeter (if available)"
+    ],
+    "needed_parts": [
+      "avr"
+    ],
+    "danger_en": "Shock risk. Never open panel with gen running. Unplug loads first.",
+    "danger_pidgin": "Light fit shock you. No open panel when gen dey run. Comot load first.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 35000
+  },
+  {
+    "id": "no-start-silent",
+    "diagnosis_en": "No sound at all when pulling - recoil starter or low oil cutoff.",
+    "diagnosis_pidgin": "You pull rope, nothing happen - recoil starter or oil low.",
+    "steps_en": [
+      "Check oil level - low-oil sensor blocks start.",
+      "Top up to mark with SAE 10W-30.",
+      "Check recoil rope - if loose/broken, open cover.",
+      "Check kill switch is ON/RUN position.",
+      "Try start with choke on, no load plugged."
+    ],
+    "steps_pidgin": [
+      "Check oil - if oil low, gen no go start.",
+      "Top oil reach mark.",
+      "Check rope - if e loose or cut, open cover.",
+      "Check off/on switch dey for RUN.",
+      "Try start with choke, no plug anything."
+    ],
+    "tools": [
+      "Screwdriver",
+      "Funnel"
+    ],
+    "needed_parts": [
+      "engine-oil",
+      "recoil-starter"
+    ],
+    "danger_en": "Keep fingers clear of flywheel when cover is open.",
+    "danger_pidgin": "No put finger near flywheel when cover open.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 15000
+  },
+  {
+    "id": "overload-trip",
+    "diagnosis_en": "Gen starts then cuts under load - overload or weak breaker.",
+    "diagnosis_pidgin": "Gen start but e trip when you load am - load too much.",
+    "steps_en": [
+      "Unplug everything, restart gen.",
+      "Add loads one by one - find the heavy one.",
+      "Don't exceed 80% of rated watts (2.5kVA ≈ 2000W max).",
+      "Fridge + AC + iron at once will trip small gen.",
+      "If trips with small load, breaker weak - replace."
+    ],
+    "steps_pidgin": [
+      "Comot everything, start gen again.",
+      "Plug things one-one - find the one wey heavy pass.",
+      "No pass 80% of wetin gen fit carry.",
+      "Fridge + AC + iron together go trip small gen.",
+      "If e trip with small load, breaker don weak - change am."
+    ],
+    "tools": [],
+    "needed_parts": [],
+    "danger_en": "Don't bypass breaker - fire risk.",
+    "danger_pidgin": "No bypass breaker - fire fit catch.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 10000
+  }
+]

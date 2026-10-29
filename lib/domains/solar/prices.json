@@ -1,0 +1,12 @@
+{
+  "tubular-battery-220ah": { "name": "Tubular battery 220Ah", "price_naira": 280000, "market": "Solar dealers / Jumia" },
+  "panel-550w": { "name": "Solar panel 550W mono", "price_naira": 145000, "market": "Solar dealers / Alaba" },
+  "charge-controller-60a": { "name": "MPPT charge controller 60A", "price_naira": 95000, "market": "Solar dealers" },
+  "inverter-3kva": { "name": "Hybrid inverter 3kVA", "price_naira": 420000, "market": "Solar dealers" },
+  "dc-breaker-63a": { "name": "DC breaker 63A", "price_naira": 18000, "market": "Alaba / Jumia" },
+  "ac-breaker-32a": { "name": "AC breaker 32A", "price_naira": 8000, "market": "Electrical market" },
+  "inverter-fan-12v": { "name": "Inverter cooling fan 12V", "price_naira": 12000, "market": "Alaba / Ladipo" },
+  "mc4-pair": { "name": "MC4 connector pair", "price_naira": 3500, "market": "Solar dealers" },
+  "battery-cable-25mm": { "name": "Battery cable 25mm (per metre)", "price_naira": 15000, "market": "Electrical market" },
+  "distilled-water-4l": { "name": "Distilled water 4L", "price_naira": 5000, "market": "Supermarket / market" }
+}

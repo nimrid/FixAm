@@ -1,0 +1,80 @@
+[
+  {
+    "id": "battery-drain",
+    "diagnosis_en": "Battery dies in hours. Ageing battery, runaway background apps, or heat damage.",
+    "diagnosis_pidgin": "Battery dey quick finish. Battery don old, apps dey run for background, or heat don wound am.",
+    "steps_en": ["Check Settings > Battery to find the top draining apps.", "Force-stop or uninstall apps you don't use.", "Turn off background refresh, location, and 5G if signal is weak.", "Avoid charging to 100% overnight on heat - unplug at 80-90%.", "If battery is 2+ years old, replacement is the real fix."],
+    "steps_pidgin": ["Check Settings > Battery see apps wey dey chop battery pass.", "Force-stop or delete apps wey you no dey use.", "Off background refresh, location, and 5G if network weak.", "No charge am 100% for heat overnight - comot am for 80-90%.", "If battery don pass 2 years, na to change am be the real fix."],
+    "tools": ["None - settings only"],
+    "needed_parts": ["battery-replacement"],
+    "danger_en": "If the back is swelling or screen lifting, stop using it - swollen batteries can catch fire.",
+    "danger_pidgin": "If back dey swell or screen dey lift, stop use am - battery fit catch fire.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 15000
+  },
+  {
+    "id": "no-charge-phone",
+    "diagnosis_en": "Phone won't charge or charges slowly. Lint in port, bad cable, or weak charger.",
+    "diagnosis_pidgin": "Phone no dey charge or e dey slow. Dirt full charging port, cable bad, or charger weak.",
+    "steps_en": ["Try a different cable and charger you know works.", "Inspect the port with light - pick lint out gently with a toothpick.", "Never use metal pins inside the port.", "Clean cable connector with dry cloth.", "If it only charges at an angle, the port is loose - needs a technician."],
+    "steps_pidgin": ["Try another cable and charger wey you sure say good.", "Use light check port - comot dirt gentle with toothpick.", "No use metal pin inside port.", "Clean cable mouth with dry cloth.", "If e only charge when you bend cable, port don loose - na technician work."],
+    "tools": ["Toothpick", "Torchlight"],
+    "needed_parts": ["fast-cable", "charger-18w", "charging-port-fix"],
+    "danger_en": "Don't force the cable. Stop using swollen or very hot chargers.",
+    "danger_pidgin": "No force cable enter. Stop use charger wey dey swell or hot too much.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 8000
+  },
+  {
+    "id": "cracked-screen",
+    "diagnosis_en": "Cracked screen. Glass-only damage vs dead touch/display decides the cost.",
+    "diagnosis_pidgin": "Screen don break. If na only glass crack e cheap pass; if touch or display die, e cost.",
+    "steps_en": ["Back up photos and WhatsApp immediately.", "Test touch everywhere - dead zones mean digitizer damage.", "Check for black spots or lines - that is display damage.", "Put a tempered glass over cracks to stop spread.", "Get 2-3 repair quotes - prices vary wildly by model."],
+    "steps_pidgin": ["Backup your photos and WhatsApp now-now.", "Test touch everywhere - where e no work mean digitizer don die.", "Check black spot or lines - na display damage be that.", "Put tempered glass on top make crack no spread.", "Ask 2-3 repairers price - price dey change well-well by model."],
+    "tools": ["None"],
+    "needed_parts": ["screen-tecno-infinix"],
+    "danger_en": "Glass shards can cut. Keep away from children. Don't press hard on cracks.",
+    "danger_pidgin": "Broken glass fit cut. Keep am far from children. No press crack hard.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 35000
+  },
+  {
+    "id": "overheat-phone",
+    "diagnosis_en": "Phone overheats, especially while charging or gaming.",
+    "diagnosis_pidgin": "Phone dey hot too much, especially when e dey charge or you dey game.",
+    "steps_en": ["Take off thick case while charging.", "Don't game or stream while charging.", "Keep out of direct sun - dashboard heat kills batteries.", "Close camera and hotspot when not in use.", "If it overheats doing nothing, battery or board fault - see a technician."],
+    "steps_pidgin": ["Comot thick cover when e dey charge.", "No game or stream when e dey charge.", "No leave am for sun - dashboard heat dey kill battery.", "Off camera and hotspot when you no need am.", "If e dey hot when you no dey use am, na battery or board wahala - see technician."],
+    "tools": ["None"],
+    "needed_parts": ["battery-replacement"],
+    "danger_en": "Swelling + heat = stop using immediately, keep away from bed/clothes.",
+    "danger_pidgin": "Swell + heat = stop use am now, keep am far from bed and cloth.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 15000
+  },
+  {
+    "id": "storage-full",
+    "diagnosis_en": "Storage full, phone slow, can't update or snap.",
+    "diagnosis_pidgin": "Memory don full, phone slow, you no fit update or snap.",
+    "steps_en": ["Check Settings > Storage - WhatsApp media is usually the biggest chunk.", "Delete WhatsApp videos/voice notes you don't need.", "Clear cache of heavy apps (TikTok, Facebook, Chrome).", "Move photos to Google Photos with backup, then free space.", "Uninstall apps unused for 3+ months."],
+    "steps_pidgin": ["Check Settings > Storage - WhatsApp media na im big pass normally.", "Delete WhatsApp video and voice note wey you no need.", "Clear cache for heavy apps.", "Move photos go Google Photos with backup, then free space.", "Delete apps wey you never use for 3 months."],
+    "tools": ["None"],
+    "needed_parts": [],
+    "danger_en": "Back up before deleting anything you care about.",
+    "danger_pidgin": "Backup before you delete anything important.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 3000
+  },
+  {
+    "id": "no-network",
+    "diagnosis_en": "No service or calls failing. SIM, settings, or antenna issue.",
+    "diagnosis_pidgin": "No service or call no dey go. SIM, settings, or antenna wahala.",
+    "steps_en": ["Toggle airplane mode on for 10 seconds, then off.", "Remove and reseat the SIM - clean contacts gently.", "Try the SIM in another phone to rule out network/SIM.", "Reset network settings (WiFi passwords will clear).", "If SIM works elsewhere, antenna or board fault - technician."],
+    "steps_pidgin": ["On airplane mode 10 seconds, then off am.", "Comot SIM put am back - clean am gentle.", "Try SIM for another phone to know whether na network.", "Reset network settings (WiFi password go clear).", "If SIM work for other phone, na antenna or board - technician."],
+    "tools": ["SIM ejector pin"],
+    "needed_parts": [],
+    "danger_en": "None - safe steps. Don't insert wet SIM.",
+    "danger_pidgin": "No wahala - safe steps. No put wet SIM.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 5000
+  }
+]

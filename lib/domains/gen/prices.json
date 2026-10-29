@@ -1,0 +1,11 @@
+{
+  "spark-plug": { "name": "Spark plug (NGK/LD)", "price_naira": 3500, "market": "Ladipo / Jiji" },
+  "air-filter": { "name": "Air filter foam element", "price_naira": 4000, "market": "Ladipo / Alaba" },
+  "carburetor": { "name": "Carburetor assembly (2.5kVA)", "price_naira": 25000, "market": "Ladipo" },
+  "fuel-valve": { "name": "Fuel cock / valve", "price_naira": 6000, "market": "Ladipo" },
+  "recoil-starter": { "name": "Recoil starter assembly", "price_naira": 12000, "market": "Ladipo / Jumia" },
+  "ignition-coil": { "name": "Ignition coil", "price_naira": 15000, "market": "Ladipo" },
+  "avr": { "name": "AVR (automatic voltage regulator)", "price_naira": 18000, "market": "Alaba / Jumia" },
+  "engine-oil": { "name": "Engine oil SAE 10W-30 (1L)", "price_naira": 8000, "market": "Anywhere" },
+  "fuel-filter": { "name": "Inline fuel filter", "price_naira": 2500, "market": "Ladipo" }
+}

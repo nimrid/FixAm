@@ -1,0 +1,80 @@
+[
+  {
+    "id": "kick-no-start",
+    "diagnosis_en": "Kick starter turns but engine won't catch. Fouled spark plug or blocked carburetor jet.",
+    "diagnosis_pidgin": "Kick dey turn but engine no gree catch. Spark plug don spoil or carburetor jet block.",
+    "steps_en": ["Turn fuel tap ON, confirm fuel in tank.", "Remove spark plug, check for black/oily deposits.", "Clean plug with wire brush or replace it.", "Drain carburetor float bowl screw to flush dirt.", "Choke on, no throttle, kick firmly 2-3 times."],
+    "steps_pidgin": ["Open fuel tap, confirm fuel dey tank.", "Comot spark plug, check if e black or oily.", "Brush plug well or buy new one.", "Drain carburetor bottom screw make dirt comot.", "Choke on, no press throttle, kick am well 2-3 times."],
+    "tools": ["Plug spanner", "Screwdriver", "Wire brush"],
+    "needed_parts": ["spark-plug", "carb-cleaner"],
+    "danger_en": "Keep fuel away from the hot exhaust. Work outside, engine off.",
+    "danger_pidgin": "Keep fuel far from hot exhaust. Outside, engine off.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 12000
+  },
+  {
+    "id": "chain-noise",
+    "diagnosis_en": "Loud chain slap and jerky drive. Drive chain loose, dry, or worn sprockets.",
+    "diagnosis_pidgin": "Chain dey make noise, bike dey drag. Chain loose, dry, or sprocket don chop.",
+    "steps_en": ["Put bike on centre stand, engine off.", "Check chain slack midway - should be 20-30mm.", "Loosen rear axle nut, adjust both tensioners evenly.", "Check wheel alignment marks match both sides.", "Tighten axle, lubricate chain with gear oil."],
+    "steps_pidgin": ["Put bike for centre stand, off engine.", "Check chain slack for middle - suppose be 20-30mm.", "Loose back axle nut, adjust the two tensioners equal.", "Check alignment marks match for both sides.", "Tighten axle, rub gear oil for chain."],
+    "tools": ["Spanners (axle + tensioner)", "Gear oil"],
+    "needed_parts": ["drive-chain-kit"],
+    "danger_en": "Never adjust chain with engine running. Fingers clear of sprocket.",
+    "danger_pidgin": "No adjust chain when engine dey run. Keep finger far from sprocket.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 8000
+  },
+  {
+    "id": "brake-weak",
+    "diagnosis_en": "Brake lever pulls to the bar with weak stopping. Worn brake shoes or stretched cable.",
+    "diagnosis_pidgin": "Brake no dey catch, lever dey go far. Brake shoe don finish or cable don slack.",
+    "steps_en": ["Stop riding until fixed - this is dangerous.", "Tighten brake cable adjuster at lever and drum.", "If adjuster is maxed out, shoes are worn.", "Remove wheel, replace brake shoes both sides.", "Bed in gently: slow stops from low speed first."],
+    "steps_pidgin": ["No ride am until you fix am - e dangerous.", "Tighten brake cable adjuster for lever and drum.", "If adjuster don max, shoe don finish.", "Comot wheel, change brake shoe both sides.", "Test am gentle first with slow stops."],
+    "tools": ["Spanners", "Screwdriver"],
+    "needed_parts": ["brake-shoe-set"],
+    "danger_en": "Do not ride with weak brakes. Test at walking speed first.",
+    "danger_pidgin": "No ride bike wey brake no dey catch. Test am for slow speed first.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 10000
+  },
+  {
+    "id": "overheat-oil",
+    "diagnosis_en": "Engine overheats and loses power. Low or old engine oil.",
+    "diagnosis_pidgin": "Engine dey hot too much, power dey drop. Oil low or oil don old.",
+    "steps_en": ["Stop and let engine cool 20 minutes.", "Check oil level with dipstick on level ground.", "If dark and thin, drain fully while warm.", "Refill with correct 20W-50 to the mark.", "Check for oil leaks around seals after running."],
+    "steps_pidgin": ["Stop, make engine cool 20 minutes.", "Check oil level for flat ground.", "If oil black and watery, drain everything.", "Put correct 20W-50 reach mark.", "Check whether oil dey leak after you run am."],
+    "tools": ["Drain pan", "Funnel", "Spanner"],
+    "needed_parts": ["engine-oil-20w50"],
+    "danger_en": "Hot oil burns. Never open drain plug on a very hot engine quickly.",
+    "danger_pidgin": "Hot oil dey burn. No rush open drain when engine too hot.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 7000
+  },
+  {
+    "id": "flat-tube",
+    "diagnosis_en": "Tyre flat or losing air. Punctured tube or leaky valve.",
+    "diagnosis_pidgin": "Tyre flat or air dey comot. Tube don burst or valve dey leak.",
+    "steps_en": ["Find the puncture: inflate and listen, or water test.", "Remove wheel, lever tyre off one side.", "Patch tube or replace it outright.", "Check inside tyre for nail or sharp object.", "Refit, inflate to pressure on sidewall."],
+    "steps_pidgin": ["Find where air dey comot: pump am, listen, or use water test.", "Comot wheel, use lever open tyre one side.", "Patch tube or buy new one.", "Check inside tyre for nail.", "Fit am back, pump reach pressure wey dem write for tyre."],
+    "tools": ["Tyre levers", "Pump", "Patch kit"],
+    "needed_parts": ["tube-300-17"],
+    "danger_en": "Use a proper stand. Don't pinch the new tube with levers.",
+    "danger_pidgin": "Use correct stand. No cut new tube with lever.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 5000
+  },
+  {
+    "id": "no-light-okada",
+    "diagnosis_en": "Headlamp dead. Blown bulb, fuse, or weak battery.",
+    "diagnosis_pidgin": "Headlamp no dey light. Bulb burn, fuse cut, or battery weak.",
+    "steps_en": ["Check headlamp bulb filament first.", "Check fuse near battery - replace if broken.", "Test battery voltage: below 12V means charge or replace.", "Check earth wire connection to frame.", "Never ride at night without light."],
+    "steps_pidgin": ["Check bulb first whether filament cut.", "Check fuse near battery - change am if e cut.", "Test battery: below 12V mean charge or change am.", "Check earth wire for frame.", "No ride night without light o."],
+    "tools": ["Screwdriver", "Multimeter (if available)"],
+    "needed_parts": ["headlamp-bulb", "fuse-10a"],
+    "danger_en": "Disconnect battery before touching wiring.",
+    "danger_pidgin": "Comot battery wire before you touch wiring.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 6000
+  }
+]

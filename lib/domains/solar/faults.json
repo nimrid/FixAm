@@ -1,0 +1,80 @@
+[
+  {
+    "id": "beep-cutoff",
+    "diagnosis_en": "Inverter beeps then cuts power. Battery low or load exceeds capacity.",
+    "diagnosis_pidgin": "Inverter dey beep then e cut light. Battery low or load too much.",
+    "steps_en": ["Switch off heavy loads: iron, AC, pump, heater.", "Check battery voltage: below 11.5V per 12V block is flat.", "Let batteries charge fully before reloading.", "Add loads back one by one to find the heavy one.", "If it cuts on small load, batteries may be weak."],
+    "steps_pidgin": ["Off heavy things: iron, AC, pump, heater.", "Check battery voltage: below 11.5V mean e don flat.", "Make battery charge full before you load am.", "Put load one-one take find the heavy one.", "If e cut for small load, battery don weak."],
+    "tools": ["Multimeter"],
+    "needed_parts": [],
+    "danger_en": "Batteries hold huge current. No metal tools across terminals.",
+    "danger_pidgin": "Battery get big current. No put metal across terminals.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 15000
+  },
+  {
+    "id": "no-output-solar",
+    "diagnosis_en": "Inverter is ON but no output. Output breaker tripped or inverter in fault mode.",
+    "diagnosis_pidgin": "Inverter dey ON but e no bring light. Breaker trip or inverter don enter fault mode.",
+    "steps_en": ["Unplug all loads from inverter sockets.", "Reset the AC output breaker to ON.", "Power inverter OFF, wait 1 minute, power ON.", "Check display for fault code (overload, short, overtemp).", "Test with one bulb. If fault returns, call installer."],
+    "steps_pidgin": ["Comot everything for inverter socket.", "Reset AC breaker put am ON.", "Off inverter, wait 1 minute, ON am.", "Check display for fault code.", "Test with one bulb. If fault come back, call installer."],
+    "tools": ["None"],
+    "needed_parts": ["ac-breaker-32a"],
+    "danger_en": "Shock risk from AC output. Dry hands, rubber slippers.",
+    "danger_pidgin": "Light fit shock. Dry hand, wear slippers.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 25000
+  },
+  {
+    "id": "battery-fast-drain",
+    "diagnosis_en": "Battery drains in under an hour. Ageing/sulphated battery or undersized bank.",
+    "diagnosis_pidgin": "Battery dey quick finish. Battery don old or e small for your load.",
+    "steps_en": ["Note backup time vs when new - 50% drop means ageing.", "Check water level in tubular cells, top with distilled water.", "Clean corroded terminals with wire brush + petroleum jelly.", "Measure each battery: one weak block drags all down.", "Replace full bank together - never mix old and new."],
+    "steps_pidgin": ["Compare backup time with before - if e half, battery don old.", "Check water for tubular battery, top with distilled water.", "Clean rust for terminals, rub small vaseline.", "Measure each battery: one weak one dey drag all.", "Change full set together - no mix old and new."],
+    "tools": ["Multimeter", "Wire brush", "Distilled water"],
+    "needed_parts": ["tubular-battery-220ah"],
+    "danger_en": "Battery acid burns. Gloves + glasses when topping water.",
+    "danger_pidgin": "Battery acid dey burn. Wear glove and glasses.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 30000
+  },
+  {
+    "id": "no-charge",
+    "diagnosis_en": "Panels not charging batteries. Shade, tripped DC breaker, or bad connection.",
+    "diagnosis_pidgin": "Panel no dey charge battery. Shade cover am, DC breaker trip, or wire loose.",
+    "steps_en": ["Check charge controller screen: PV volts should exceed battery volts at noon.", "Clear shade, dust, bird droppings off panels.", "Reset DC breaker between panels and controller.", "Tighten MC4 and battery terminals (spark-free, shade panels first).", "If PV volts read zero in sun, a panel or diode failed."],
+    "steps_pidgin": ["Check controller screen: PV volt suppose pass battery volt for afternoon.", "Clean shade, dust, bird shit comot for panel.", "Reset DC breaker between panel and controller.", "Tighten wire well (cover panel make spark no dey).", "If PV volt na zero for sun, panel or diode don die."],
+    "tools": ["Multimeter", "Soft brush", "Spanners"],
+    "needed_parts": ["dc-breaker-63a", "mc4-pair"],
+    "danger_en": "Panels are live in sunlight. Cover with cloth before touching wires.",
+    "danger_pidgin": "Panel dey carry light for sun. Cover am with cloth before touch wire.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 20000
+  },
+  {
+    "id": "inverter-hot",
+    "diagnosis_en": "Inverter overheats and shuts down. Blocked fan, dust, or poor ventilation.",
+    "diagnosis_pidgin": "Inverter dey hot too much e dey off. Fan block, dust full am, or air no dey enter.",
+    "steps_en": ["Move clutter 30cm clear on all sides.", "Clean dust filters and fan grill.", "Confirm cooling fan spins when loaded.", "Reduce load during hottest hours.", "If fan is dead, replace before next use."],
+    "steps_pidgin": ["Clear load 30cm round am.", "Clean dust for filter and fan.", "Confirm fan dey spin when load dey.", "Reduce load for hot afternoon.", "If fan don die, change am before use am again."],
+    "tools": ["Soft brush", "Screwdriver"],
+    "needed_parts": ["inverter-fan-12v"],
+    "danger_en": "Let it cool before opening. Capacitors hold charge - don't touch boards.",
+    "danger_pidgin": "Make e cool before open. No touch board inside.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 18000
+  },
+  {
+    "id": "low-pv-morning",
+    "diagnosis_en": "Weak morning charging that improves by noon. Normal angle effect or one shaded string.",
+    "diagnosis_pidgin": "Morning charge weak but e improve for afternoon. Sun angle normal, or one string get shade.",
+    "steps_en": ["Confirm panels face south-ish with ~10-15 degree tilt.", "Check for morning-only shade from tank, wall, tree.", "Compare string voltages if you have two strings.", "Clean panels - harmattan dust cuts 20%+.", "If one string is dead, call installer."],
+    "steps_pidgin": ["Confirm panel face sun side with small tilt.", "Check whether tank, wall or tree dey shade am for morning.", "Compare the two string volts if you get two.", "Clean panel - harmattan dust dey cut power well-well.", "If one string dead, call installer."],
+    "tools": ["Soft brush", "Multimeter"],
+    "needed_parts": [],
+    "danger_en": "Roof work: ladder footing, no wet roof, daytime only.",
+    "danger_pidgin": "Roof work: set ladder well, no climb wet roof.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 10000
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "id": "overheat-car",
+    "diagnosis_en": "Temperature gauge in red. Cooling system failure - low coolant, dead fan, or stuck thermostat.",
+    "diagnosis_pidgin": "Temperature gauge don enter red. Cooling system fail - coolant low, fan die, or thermostat lock.",
+    "steps_en": ["Hazards ON, pull over somewhere safe and lit - never stop on a blind bend.", "Switch engine OFF immediately. Do NOT open the radiator cap while hot.", "Wait 30-45 minutes for full cool-down.", "Check coolant reservoir level (not the radiator cap).", "Top with clean water to reach help, then fix properly - driving hot cracks the engine."],
+    "steps_pidgin": ["On hazard light, park for safe place wey light dey - no stop for corner.", "Off engine now. NO open radiator cap when e hot.", "Wait 30-45 minutes make e cool well.", "Check coolant bottle level (no be radiator cap).", "Top clean water take reach help, then fix am well - to drive hot engine na to crack am."],
+    "tools": ["Clean water (emergency)", "Torchlight"],
+    "needed_parts": ["coolant-4l", "thermostat-toyota"],
+    "danger_en": "AT NIGHT: hazards + reflector triangle, stay in car with doors locked in lonely areas, call someone you trust - not random tow.",
+    "danger_pidgin": "FOR NIGHT: hazard + triangle, stay inside motor lock door for lonely road, call person you trust - no follow anyhow tow.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 40000
+  },
+  {
+    "id": "no-start-car",
+    "diagnosis_en": "Car won't start. Dead battery (most common), corroded terminals, or starter fault.",
+    "diagnosis_pidgin": "Motor no gree start. Battery don die (na im common pass), terminal rust, or starter wahala.",
+    "steps_en": ["Turn key: rapid clicking = dead battery. Single click = starter. Silence = terminals/fuse.", "Check terminals - white/green crust means clean and retighten.", "Try jump-start with good cables: plus-to-plus, minus-to-engine-metal.", "If it starts, drive 30+ minutes to recharge - or battery is finished.", "Dimming lights + old battery (3+ years) = replace battery."],
+    "steps_pidgin": ["Turn key: kpa-kpa-kpa sound na dead battery. One click na starter. Silence na terminal/fuse.", "Check terminals - white/green rust mean clean am tighten am.", "Try jump-start with correct cable: plus to plus, minus to engine body.", "If e start, drive am 30+ minutes make e charge - if not, battery don die.", "Light dim + battery don pass 3 years = change battery."],
+    "tools": ["Jump cables", "Spanner", "Wire brush"],
+    "needed_parts": ["car-battery-75ah"],
+    "danger_en": "AT NIGHT: don't accept jump from strangers in lonely spots. Battery sparks - connect in correct order.",
+    "danger_pidgin": "FOR NIGHT: no collect jump from stranger for lonely road. Battery dey spark - connect am correct way.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 15000
+  },
+  {
+    "id": "brake-car",
+    "diagnosis_en": "Brakes soft, grinding, or pulling to one side. Worn pads, low fluid, or air in lines.",
+    "diagnosis_pidgin": "Brake soft, e dey grind, or motor dey pull one side. Pad don finish, fluid low, or air enter line.",
+    "steps_en": ["If pedal goes to floor: stop driving. Pump pedal to build pressure to reach safety.", "Check brake fluid reservoir - low means leak or worn pads.", "Grinding metal sound = pads finished, discs getting damaged.", "Pulling aside = stuck caliper or uneven wear.", "Brakes are never DIY-guess work - mechanic must inspect."],
+    "steps_pidgin": ["If brake pedal dey go floor: stop driving. Pump am take reach safe place.", "Check brake fluid bottle - if e low, leak dey or pad don finish.", "Iron-to-iron sound mean pad don finish, e dey chop disc.", "If motor dey pull one side, caliper don jam.", "Brake no be guess work - mechanic must check am."],
+    "tools": ["Torchlight"],
+    "needed_parts": ["brake-pads-front", "brake-fluid-dot4"],
+    "danger_en": "Do NOT drive with failing brakes - day or night. Tow it.",
+    "danger_pidgin": "NO drive motor wey brake don fail - morning or night. Tow am.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 45000
+  },
+  {
+    "id": "flat-tyre-car",
+    "diagnosis_en": "Tyre flat or burst. Change to spare or plug puncture.",
+    "diagnosis_pidgin": "Tyre flat or e burst. Change am to spare or patch am.",
+    "steps_en": ["Hazards on, park flat and firm - never on a slope.", "Loosen wheel nuts BEFORE jacking (half turn).", "Jack at the correct lift point in your manual.", "Swap spare, tighten nuts star-pattern, lower, re-tighten.", "Spare is temporary: 80km/h max, fix main tyre same day."],
+    "steps_pidgin": ["Hazard on, park for flat ground - no be slope.", "Loose wheel nuts SMALL before you jack am.", "Jack am for correct point wey manual talk.", "Put spare, tighten nuts opposite-opposite, bring am down, tighten again.", "Spare na manage: 80km/h max, fix main tyre that same day."],
+    "tools": ["Jack", "Wheel spanner", "Spare tyre", "Reflector triangle"],
+    "needed_parts": ["tyre-205-55r16"],
+    "danger_en": "AT NIGHT: hazards + triangle 50m behind, work facing traffic side away, doors locked, valuables hidden. If unsafe, lock up and leave it - tyre is cheaper than life.",
+    "danger_pidgin": "FOR NIGHT: hazard + triangle 50m back, face road make you see motor, lock door, hide valuables. If place no safe, lock motor waka - tyre cheap pass life.",
+    "take_to_shop": false,
+    "typical_shop_cost_naira": 8000
+  },
+  {
+    "id": "dash-light",
+    "diagnosis_en": "Warning light on dashboard. Meaning depends on color: red = stop now, amber = check soon.",
+    "diagnosis_pidgin": "Warning light don show for dashboard. Red mean stop now, amber mean check am soon.",
+    "steps_en": ["RED oil-can or battery light: stop engine now, do not drive.", "RED temperature: see overheating steps.", "AMBER check-engine steady: drive gently to a scan, avoid high speed.", "AMBER flashing check-engine: pull over, engine damage risk.", "Note exact light + any sound/smell for the mechanic."],
+    "steps_pidgin": ["RED oil or battery light: off engine now, no drive am.", "RED temperature: follow overheat steps.", "AMBER check-engine wey steady: drive gentle go scan, no speed.", "AMBER wey dey blink: park, engine fit spoil.", "Note the exact light + any sound/smell tell mechanic."],
+    "tools": ["Phone camera (snap the dashboard)"],
+    "needed_parts": ["obd-scan"],
+    "danger_en": "Red lights mean stop. Driving through red warnings destroys engines.",
+    "danger_pidgin": "Red light mean stop. To drive am na to kill engine.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 10000
+  },
+  {
+    "id": "noise-vibration",
+    "diagnosis_en": "Strange noise or shaking while driving. Belt, mount, bearing, or suspension wear.",
+    "diagnosis_pidgin": "Strange noise or motor dey shake as you dey drive. Belt, mount, bearing, or suspension don wear.",
+    "steps_en": ["Note WHEN: braking, turning, accelerating, or all the time.", "Squeal on start = fan/alternator belt loose or worn.", "Grinding when turning = wheel bearing or CV joint.", "Shake at speed that stops when braking = warped discs or balance.", "Knocking over bumps = shock absorber or linkage - inspect soon."],
+    "steps_pidgin": ["Note WHEN e dey happen: brake time, turning, accelerating, or always.", "Shiii sound for morning start na belt loose.", "Grinding when you turn na bearing or shaft.", "Shake for speed wey stop when you brake na disc or balancing.", "Kpo-kpo for bump na shock or linkage - make dem check am soon."],
+    "tools": ["None - observation"],
+    "needed_parts": ["drive-belt", "wheel-bearing"],
+    "danger_en": "New loud noise + shaking = slow down, hazards, pull over and inspect before continuing.",
+    "danger_pidgin": "New loud noise + shake = slow down, hazard, park check am before you continue.",
+    "take_to_shop": true,
+    "typical_shop_cost_naira": 30000
+  }
+]

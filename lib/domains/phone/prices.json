@@ -1,0 +1,10 @@
+{
+  "battery-replacement": { "name": "Battery replacement (Tecno/Infinix/Samsung)", "price_naira": 12000, "market": "Computer Village / Jiji" },
+  "screen-tecno-infinix": { "name": "Screen replacement (Tecno/Infinix)", "price_naira": 30000, "market": "Computer Village" },
+  "screen-samsung": { "name": "Screen replacement (Samsung A-series)", "price_naira": 55000, "market": "Computer Village" },
+  "charging-port-fix": { "name": "Charging port repair", "price_naira": 8000, "market": "Repair shops" },
+  "charger-18w": { "name": "Original 18W charger", "price_naira": 7000, "market": "Slot / Jumia" },
+  "fast-cable": { "name": "Quality fast-charge cable", "price_naira": 3000, "market": "Slot / markets" },
+  "tempered-glass": { "name": "Tempered glass protector", "price_naira": 2000, "market": "Anywhere" },
+  "phone-back-cover": { "name": "Back cover replacement", "price_naira": 6000, "market": "Computer Village" }
+}
