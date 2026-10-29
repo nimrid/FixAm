@@ -66,6 +66,7 @@ export default function Home() {
   const [motion, setMotion] = useState(null);
   const [clipRecording, setClipRecording] = useState(false);
   const [segmented, setSegmented] = useState(false);
+  const [motionProgress, setMotionProgress] = useState("");
   const [clipFallback, setClipFallback] = useState(false);
   const clipFileRef = useRef(null);
   const mediaRef = useRef(null);
@@ -291,10 +292,13 @@ export default function Home() {
     e.target.value = "";
   }
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   async function analyzeMotion() {
     if (!clipBase64) return;
     setLoading("motion");
     setNotice(null);
+    setMotionProgress(t("Uploading clip…", "Dey upload clip…"));
     try {
       const res = await fetch("/api/analyze-video", {
         method: "POST",
@@ -302,14 +306,34 @@ export default function Home() {
         body: JSON.stringify({ clipBase64 })
       });
       if (res.status === 413) throw new Error(t("Clip too large to upload. Record a shorter one.", "Video too big. Record short one."));
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setMotion(data);
-      if (data.fallback) setNotice({ text: t("Live motion analysis is unreachable. Showing an offline result.", "Live motion check no connect. Offline result we show."), action: "motion" });
+      const sub = await res.json();
+      if (sub.error) throw new Error(sub.error);
+      if (sub.done) {
+        setMotion(sub);
+        if (sub.fallback) setNotice({ text: t("Live motion analysis is unreachable. Showing an offline result.", "Live motion check no connect. Offline result we show."), action: "motion" });
+        return;
+      }
+      const t0 = Date.now();
+      for (let i = 0; i < 72; i++) {
+        await sleep(5000);
+        const elapsed = Math.round((Date.now() - t0) / 1000);
+        setMotionProgress(t(`Tracking motion… ${elapsed}s`, `Dey track motion… ${elapsed}s`));
+        const r = await fetch(`/api/motion-status?id=${encodeURIComponent(sub.call_id)}`);
+        const d = await r.json();
+        if (d.error) throw new Error(d.error);
+        if (d.done) {
+          setMotion(d);
+          if (d.fallback) setNotice({ text: t("Live motion analysis is unreachable. Showing an offline result.", "Live motion check no connect. Offline result we show."), action: "motion" });
+          return;
+        }
+      }
+      throw new Error(t("Timed out after 6 minutes. Try a shorter clip.", "E too tey (6 mins). Try shorter clip."));
     } catch (e) {
       setNotice({ text: t("Motion analysis failed: ", "Motion check fail: ") + e.message, action: "motion" });
+    } finally {
+      setLoading("");
+      setMotionProgress("");
     }
-    setLoading("");
   }
 
   async function showDiagram() {
@@ -734,7 +758,7 @@ export default function Home() {
             <div className="skel" style={{ height: 18, width: "55%" }} />
             <div className="skel skel-line" />
             <div className="skel skel-line" style={{ width: "70%" }} />
-            <p className="hint" style={{ marginTop: 10 }}>{t("Tracking motion on Modal + SAM… up to a minute.", "Dey track motion… fit reach one minute.")}</p>
+            <p className="hint" style={{ marginTop: 10 }}>{motionProgress || t("Tracking motion on Modal + SAM… up to a minute.", "Dey track motion… fit reach one minute.")}</p>
           </section>
         )}
 
@@ -743,8 +767,8 @@ export default function Home() {
             <div className="card-head">
               <div className="verdict-badge">{I.activity(20)}</div>
               <div className="card-head-text">
-                <h2>{t("Motion report", "Motion report")}</h2>
-                <p>{t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")} {motion.fallback ? t("(offline)", "(offline)") : ""}</p>
+                <h2>{t("Motion report", "Motion report")} {motion.fallback && <span className="lvl lvl-mid">offline demo</span>}</h2>
+                <p>{t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")}</p>
               </div>
             </div>
             <div className="motion-row">

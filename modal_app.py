@@ -153,19 +153,73 @@ def _vibration_index(tracks):
     }
 
 
+def _auth_ok(payload):
+    secret = payload.get("secret", "")
+    return bool(SHARED_SECRET) and hmac.compare_digest(str(secret), SHARED_SECRET)
+
+
+@app.function(image=image, timeout=600, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+def _analyze_job(job: dict):
+    """Background worker: full pipeline. Spawned by submit_clip."""
+    return _run_analysis(job["api_key"], job["meta_base"], job["raw_b64"])
+
+
+@app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+@modal.fastapi_endpoint(method="POST")
+def submit_clip(payload: dict):
+    """Fast submit (<5s): validates, spawns background job, returns call_id."""
+    if not _auth_ok(payload):
+        return {"ok": False, "error": "unauthorized"}
+    api_key = payload.get("model_api_key", "")
+    if not api_key:
+        return {"ok": False, "error": "model_api_key missing"}
+    b64 = payload.get("video_b64", "")
+    if "," in b64:
+        b64 = b64.split(",", 1)[1]
+    if len(b64) < 1000 or len(b64) > 44 * 1024 * 1024:
+        return {"ok": False, "error": "clip must be 1KB-32MB"}
+    call = _analyze_job.spawn({
+        "api_key": api_key,
+        "meta_base": payload.get("meta_base", "https://api.meta.ai/v1"),
+        "raw_b64": b64,
+    })
+    return {"ok": True, "call_id": call.object_id}
+
+
+@app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+@modal.fastapi_endpoint(method="POST")
+def clip_result(payload: dict):
+    """Non-blocking poll: {done:false} or {done:true, result}."""
+    if not _auth_ok(payload):
+        return {"ok": False, "error": "unauthorized"}
+    call_id = payload.get("call_id", "")
+    if not call_id:
+        return {"ok": False, "error": "call_id missing"}
+    try:
+        fc = modal.functions.FunctionCall.from_id(call_id)
+        try:
+            result = fc.get(timeout=0)
+        except TimeoutError:
+            return {"ok": True, "done": False}
+        return {"ok": True, "done": True, "result": result}
+    except Exception as e:
+        return {"ok": True, "done": True, "result": {"ok": False, "error": f"job failed: {str(e)[:200]}"}}
+
+
 @app.function(image=image, timeout=600, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
 @modal.fastapi_endpoint(method="POST")
 def analyze_clip(payload: dict):
-    secret = payload.get("secret", "")
-    if not SHARED_SECRET or not hmac.compare_digest(str(secret), SHARED_SECRET):
+    """Synchronous path (local dev). Production UI uses submit_clip/clip_result."""
+    if not _auth_ok(payload):
         return {"ok": False, "error": "unauthorized"}
-
     api_key = payload.get("model_api_key", "")
-    meta_base = payload.get("meta_base", "https://api.meta.ai/v1")
     if not api_key:
         return {"ok": False, "error": "model_api_key missing"}
+    return _run_analysis(api_key, payload.get("meta_base", "https://api.meta.ai/v1"), payload.get("video_b64", ""))
 
-    b64 = payload.get("video_b64", "")
+
+def _run_analysis(api_key, meta_base, video_b64):
+    b64 = video_b64 or ""
     if "," in b64:
         b64 = b64.split(",", 1)[1]
     try:
