@@ -1,12 +1,62 @@
 {
-  "car-battery-75ah": { "name": "Car battery 75Ah", "price_naira": 120000, "market": "Battery dealers / Jiji" },
-  "coolant-4l": { "name": "Coolant 4L", "price_naira": 12000, "market": "Total/Ardova stations" },
-  "thermostat-toyota": { "name": "Thermostat (Toyota/Honda)", "price_naira": 15000, "market": "Ladipo" },
-  "brake-pads-front": { "name": "Front brake pads set", "price_naira": 35000, "market": "Ladipo" },
-  "brake-fluid-dot4": { "name": "Brake fluid DOT4", "price_naira": 8000, "market": "Stations / market" },
-  "tyre-205-55r16": { "name": "Tyre 205/55R16 (new)", "price_naira": 95000, "market": "Tyre dealers / Ladipo" },
-  "obd-scan": { "name": "OBD diagnostic scan", "price_naira": 10000, "market": "Mechanics / Jiji" },
-  "drive-belt": { "name": "Alternator/fan belt", "price_naira": 15000, "market": "Ladipo" },
-  "wheel-bearing": { "name": "Wheel bearing (one side)", "price_naira": 25000, "market": "Ladipo" },
-  "engine-oil-filter": { "name": "Oil + filter change (service)", "price_naira": 28000, "market": "Quick service" }
+  "car-battery-75ah": {
+    "name": "Car battery 75Ah",
+    "price_naira": 120000,
+    "market": "Battery dealers / Jiji",
+    "verified": "2026-10"
+  },
+  "coolant-4l": {
+    "name": "Coolant 4L",
+    "price_naira": 12000,
+    "market": "Total/Ardova stations",
+    "verified": "2026-10"
+  },
+  "thermostat-toyota": {
+    "name": "Thermostat (Toyota/Honda)",
+    "price_naira": 15000,
+    "market": "Ladipo",
+    "verified": "2026-10"
+  },
+  "brake-pads-front": {
+    "name": "Front brake pads set",
+    "price_naira": 35000,
+    "market": "Ladipo",
+    "verified": "2026-10"
+  },
+  "brake-fluid-dot4": {
+    "name": "Brake fluid DOT4",
+    "price_naira": 8000,
+    "market": "Stations / market",
+    "verified": "2026-10"
+  },
+  "tyre-205-55r16": {
+    "name": "Tyre 205/55R16 (new)",
+    "price_naira": 95000,
+    "market": "Tyre dealers / Ladipo",
+    "verified": "2026-10"
+  },
+  "obd-scan": {
+    "name": "OBD diagnostic scan",
+    "price_naira": 10000,
+    "market": "Mechanics / Jiji",
+    "verified": "2026-10"
+  },
+  "drive-belt": {
+    "name": "Alternator/fan belt",
+    "price_naira": 15000,
+    "market": "Ladipo",
+    "verified": "2026-10"
+  },
+  "wheel-bearing": {
+    "name": "Wheel bearing (one side)",
+    "price_naira": 25000,
+    "market": "Ladipo",
+    "verified": "2026-10"
+  },
+  "engine-oil-filter": {
+    "name": "Oil + filter change (service)",
+    "price_naira": 28000,
+    "market": "Quick service",
+    "verified": "2026-10"
+  }
 }

@@ -1,13 +1,68 @@
 {
-  "spark-plug": { "name": "Spark plug (NGK D8EA)", "price_naira": 3500, "market": "Parts market / Jiji" },
-  "carb-cleaner": { "name": "Carburetor cleaner spray", "price_naira": 6000, "market": "Parts market" },
-  "drive-chain-kit": { "name": "Chain + sprocket kit (Boxer/CG)", "price_naira": 18000, "market": "Parts market" },
-  "brake-shoe-set": { "name": "Brake shoe set (front+rear)", "price_naira": 9000, "market": "Parts market" },
-  "engine-oil-20w50": { "name": "Engine oil 20W-50 (1L)", "price_naira": 9000, "market": "Anywhere" },
-  "tube-300-17": { "name": "Inner tube 3.00-17", "price_naira": 5500, "market": "Vulcanizer / market" },
-  "headlamp-bulb": { "name": "Headlamp bulb 12V", "price_naira": 4000, "market": "Parts market" },
-  "fuse-10a": { "name": "Blade fuse 10A (pack)", "price_naira": 1500, "market": "Parts market" },
-  "clutch-cable": { "name": "Clutch cable", "price_naira": 4500, "market": "Parts market" },
-  "brake-cable": { "name": "Brake cable", "price_naira": 4000, "market": "Parts market" },
-  "battery-12v": { "name": "Battery 12V 5Ah", "price_naira": 35000, "market": "Parts market / Jumia" }
+  "spark-plug": {
+    "name": "Spark plug (NGK D8EA)",
+    "price_naira": 3500,
+    "market": "Parts market / Jiji",
+    "verified": "2026-10"
+  },
+  "carb-cleaner": {
+    "name": "Carburetor cleaner spray",
+    "price_naira": 6000,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "drive-chain-kit": {
+    "name": "Chain + sprocket kit (Boxer/CG)",
+    "price_naira": 18000,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "brake-shoe-set": {
+    "name": "Brake shoe set (front+rear)",
+    "price_naira": 9000,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "engine-oil-20w50": {
+    "name": "Engine oil 20W-50 (1L)",
+    "price_naira": 9000,
+    "market": "Anywhere",
+    "verified": "2026-10"
+  },
+  "tube-300-17": {
+    "name": "Inner tube 3.00-17",
+    "price_naira": 5500,
+    "market": "Vulcanizer / market",
+    "verified": "2026-10"
+  },
+  "headlamp-bulb": {
+    "name": "Headlamp bulb 12V",
+    "price_naira": 4000,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "fuse-10a": {
+    "name": "Blade fuse 10A (pack)",
+    "price_naira": 1500,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "clutch-cable": {
+    "name": "Clutch cable",
+    "price_naira": 4500,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "brake-cable": {
+    "name": "Brake cable",
+    "price_naira": 4000,
+    "market": "Parts market",
+    "verified": "2026-10"
+  },
+  "battery-12v": {
+    "name": "Battery 12V 5Ah",
+    "price_naira": 35000,
+    "market": "Parts market / Jumia",
+    "verified": "2026-10"
+  }
 }

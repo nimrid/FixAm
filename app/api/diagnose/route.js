@@ -1,6 +1,6 @@
 import { systemPrompt } from "../../../lib/prompts";
 import { getDomain } from "../../../lib/domains";
-import { callSparkDiagnosis, isDemoMode } from "../../../lib/meta";
+import { callModalCommunity, callSparkDiagnosis, isDemoMode } from "../../../lib/meta";
 
 // POST { imageBase64, symptom, lang, parts, domain? } -> strict-JSON diagnosis
 export async function POST(req) {
@@ -16,7 +16,22 @@ export async function POST(req) {
       return Response.json(mockDiagnosis(symptom, lang, D));
     }
 
-    const system = systemPrompt(D.id, lang);
+    // Ground Spark in live community medians so returned prices track reality.
+    // Best-effort: diagnosis must never fail because of this fetch.
+    let communityLine = "";
+    try {
+      const comm = await callModalCommunity({ domain: D.id });
+      const entries = Object.entries(comm).map(([k, v]) => `${k} ₦${v.median} (${v.count} reports)`);
+      if (entries.length) {
+        communityLine = `\nLive community prices (medians of user reports, prefer over your own estimates): ${entries.join("; ")}.`;
+      }
+    } catch {
+      communityLine = "";
+    }
+
+    const system = systemPrompt(D.id, lang) + (lang === "pidgin"
+      ? "\nIf live community prices dey, use dem take set shop_cost_naira correct - no contradict dem."
+      : "\nIf live community prices are provided, calibrate shop_cost_naira against them - never contradict them.");
     let parsed;
     try {
       parsed = await callSparkDiagnosis({
@@ -24,7 +39,7 @@ export async function POST(req) {
         symptom,
         parts,
         imageBase64,
-        faultsJson: JSON.stringify(faults)
+        faultsJson: JSON.stringify(faults) + communityLine
       });
     } catch (err) {
       console.error("diagnose live failed, falling back:", err.message);

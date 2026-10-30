@@ -506,6 +506,25 @@ textarea::placeholder { color: var(--ink-3); }
 .prices .p-dots { flex: 1; border-bottom: 2px dotted var(--line); transform: translateY(-4px); }
 .prices .p-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .prices .p-market { display: block; font-size: 12px; color: var(--ink-3); font-weight: 400; }
+.price-note { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; }
+.p-tag { display: block; font-size: 12px; color: var(--amber); font-weight: 700; }
+.rep-link { background: none; border: none; color: var(--ink-3); font-size: 12px; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; padding: 4px 0; display: block; }
+.rep-form { margin-top: 12px; background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+.rep-form p { font-size: 14px; }
+.rep-row { display: flex; gap: 8px; margin-top: 10px; }
+.rep-row .btn { flex: 1; min-height: 46px; }
+.rep-form input {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--surface);
+}
+.rep-form input:focus { border-color: var(--brand); outline: none; }
 
 /* Savings band (full-bleed section, not a nested card) */
 .savings-band { background: var(--brand-soft); margin: 16px -18px -18px; padding: 16px 18px 18px; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }

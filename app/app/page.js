@@ -67,6 +67,16 @@ export default function Home() {
   const [clipRecording, setClipRecording] = useState(false);
   const [segmented, setSegmented] = useState(false);
   const [motionProgress, setMotionProgress] = useState("");
+  const [community, setCommunity] = useState({});
+  const [mine, setMine] = useState(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(window.localStorage.getItem("fixam-my-prices") || "{}"); }
+    catch { return {}; }
+  });
+  const [reporting, setReporting] = useState(null);
+  const [repPrice, setRepPrice] = useState("");
+  const [repMarket, setRepMarket] = useState("");
+  const [repSending, setRepSending] = useState(false);
   const [clipFallback, setClipFallback] = useState(false);
   const clipFileRef = useRef(null);
   const mediaRef = useRef(null);
@@ -419,8 +429,14 @@ export default function Home() {
   const steps = result ? (lang === "pidgin" ? result.steps_pidgin || result.display_steps : result.steps_en || result.display_steps) : [];
   const diagnosis = result ? (lang === "pidgin" ? result.diagnosis_pidgin || result.display_diagnosis : result.diagnosis_en || result.display_diagnosis) : "";
   const danger = result ? (lang === "pidgin" ? result.danger_pidgin || result.display_danger : result.danger_en || result.display_danger) : "";
-  const partsTotal = result?.needed_parts?.reduce((s, p) => s + (typeof p.price_naira === "number" ? p.price_naira : 0), 0) || 0;
+  const partsTotal = result?.needed_parts?.reduce((s, p) => s + (effPrice(p).value || 0), 0) || 0;
   const savings = (result?.shop_cost_naira || 0) - partsTotal;
+  const priceBookMonth = (() => {
+    const v = result?.needed_parts?.find((p) => p.verified)?.verified || "2026-10";
+    const [y, m] = v.split("-");
+    const names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${names[parseInt(m, 10) - 1] || m} ${y}`;
+  })();
   const shortDiagnosis = diagnosis.length > 64 ? diagnosis.slice(0, 64).trimEnd() + "…" : diagnosis;
 
   function whatsappLink() {
@@ -434,6 +450,61 @@ export default function Home() {
       `Parts: ~₦${partsTotal.toLocaleString()} | Rewinder: ~₦${(result.shop_cost_naira || 0).toLocaleString()}`
     ];
     return `https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
+  // Community medians load progressively once a diagnosis exists.
+  useEffect(() => {
+    if (!result?.needed_parts?.length) return;
+    let live = true;
+    fetch(`/api/community-prices?domain=${encodeURIComponent(domain)}`)
+      .then((r) => r.json())
+      .then((d) => { if (live) setCommunity(d.prices || {}); })
+      .catch(() => {});
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result, domain]);
+
+  function effPrice(p) {
+    const over = mine?.[domain]?.[p.key];
+    if (over && typeof over.price === "number") return { value: over.price, tag: "you" };
+    const c = community?.[p.key];
+    if (c && typeof c.median === "number") return { value: c.median, tag: `community · ${c.count}` };
+    return { value: typeof p.price_naira === "number" ? p.price_naira : null, tag: null };
+  }
+
+  function saveMine(partKey, price, market) {
+    setMine((prev) => {
+      const next = { ...prev, [domain]: { ...(prev[domain] || {}), [partKey]: { price, market, ts: Date.now() } } };
+      try { window.localStorage.setItem("fixam-my-prices", JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
+
+  async function submitReport(e) {
+    e.preventDefault();
+    const price = parseInt(repPrice.replace(/[^0-9]/g, ""), 10);
+    if (!reporting || !Number.isInteger(price) || price < 100) {
+      setNotice({ text: t("Enter a valid amount in Naira.", "Put correct amount for Naira.") });
+      return;
+    }
+    setRepSending(true);
+    try {
+      const res = await fetch("/api/report-price", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain, part: reporting, price_naira: price, market: repMarket.trim() })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      saveMine(reporting, price, repMarket.trim());
+      setReporting(null);
+      setRepPrice("");
+      setRepMarket("");
+      setNotice({ text: t("Thanks — your price is now used in your totals.", "Thank you — we go use your price for your totals.") });
+    } catch (err) {
+      setNotice({ text: t("Could not send report: ", "No fit send report: ") + err.message });
+    }
+    setRepSending(false);
   }
 
   // Landing "Run demo" deep-link: /app?demo=1 auto-plays the full demo flow.
@@ -725,16 +796,43 @@ export default function Home() {
                 <hr className="report-sep" />
                 <p className="report-label">{t("Parts & prices", "Parts & price")}</p>
                 <ul className="prices">
-                  {result.needed_parts.map((p, i) => (
-                    <li key={i}>
-                      <span className="p-name">{p.name || p.key}
-                        {p.market && <span className="p-market">{p.market}</span>}
-                      </span>
-                      <span className="p-dots" aria-hidden="true" />
-                      <span className="p-val">{typeof p.price_naira === "number" ? `₦${p.price_naira.toLocaleString()}` : t("Ask market", "Ask market")}</span>
-                    </li>
-                  ))}
+                  {result.needed_parts.map((p, i) => {
+                    const eff = effPrice(p);
+                    return (
+                      <li key={i}>
+                        <span className="p-name">{p.name || p.key}
+                          {p.market && <span className="p-market">{p.market}</span>}
+                          {eff.tag === "you" && <span className="p-tag">{t("You reported this price", "Na you report this price")}</span>}
+                          {eff.tag && eff.tag !== "you" && <span className="p-tag">{t("Community", "Community")} · {eff.tag.split("·")[1]?.trim()} {t("reports", "reports")}</span>}
+                          <button className="rep-link" onClick={() => { setReporting(p.key); setRepPrice(""); setRepMarket(p.market || ""); }}>{t("Report price", "Report price")}</button>
+                        </span>
+                        <span className="p-dots" aria-hidden="true" />
+                        <span className="p-val">{typeof eff.value === "number" ? `₦${eff.value.toLocaleString()}` : t("Ask market", "Ask market")}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
+                {reporting && (
+                  <form className="rep-form" onSubmit={submitReport}>
+                    <p><strong>{t("Correct price for", "Correct price for")} {result.needed_parts.find((x) => x.key === reporting)?.name || reporting}?</strong></p>
+                    <div className="rep-row">
+                      <input type="number" inputMode="numeric" min="100" max="50000000" required
+                        aria-label={t("Correct price in Naira", "Correct price for Naira")}
+                        placeholder="₦" value={repPrice} onChange={(e) => setRepPrice(e.target.value)} />
+                      <input type="text" maxLength={40}
+                        aria-label={t("Market (optional)", "Market (optional)")}
+                        placeholder={t("Market (optional)", "Market (optional)")}
+                        value={repMarket} onChange={(e) => setRepMarket(e.target.value)} />
+                    </div>
+                    <div className="rep-row">
+                      <button className="btn btn-primary" type="submit" disabled={repSending}>
+                        {repSending ? t("Sending…", "Dey send…") : t("Send correction", "Send am")}
+                      </button>
+                      <button className="btn btn-secondary" type="button" onClick={() => setReporting(null)}>{t("Cancel", "Cancel")}</button>
+                    </div>
+                  </form>
+                )}
+                <p className="price-note">{t(`Prices from our ${priceBookMonth} market book — confirm before you buy.`, `Na ${priceBookMonth} market price be this — confirm before you buy.`)}</p>
               </>
             )}
 

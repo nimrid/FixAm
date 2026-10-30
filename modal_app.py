@@ -28,6 +28,8 @@ image = (
     .pip_install("requests", "fastapi[standard]")
 )
 
+price_store = modal.Dict.from_name("fixam-price-reports", create_if_missing=True)
+
 MAX_BYTES = 32 * 1024 * 1024
 MAX_SECONDS = 10.0
 SHARED_SECRET = os.environ.get("FIXAM_MODAL_SECRET", "")
@@ -304,6 +306,106 @@ def _run_analysis(api_key, meta_base, video_b64):
         "keyframes": keyframes,
         "warnings": warnings,
     }
+
+
+# --- Community price learning: reports -> consensus medians ---
+PART_KEY_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,39}$")
+PRICE_DOMAINS = ("gen", "okada", "solar", "phone", "car")
+
+
+def _bump_index(k):
+    try:
+        idx = set(price_store.get("__index__", []))
+    except Exception:
+        idx = set()
+    if k not in idx:
+        idx.add(k)
+        price_store["__index__"] = sorted(idx)
+
+
+@app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+@modal.fastapi_endpoint(method="POST")
+def report_price(payload: dict):
+    """One user correction: {domain, part, price_naira, market}."""
+    if not _auth_ok(payload):
+        return {"ok": False, "error": "unauthorized"}
+    domain = str(payload.get("domain", ""))
+    part = str(payload.get("part", ""))
+    try:
+        price = int(payload.get("price_naira", 0))
+    except (TypeError, ValueError):
+        return {"ok": False, "error": "price_naira must be an integer"}
+    market = str(payload.get("market", ""))[:60]
+    if domain not in PRICE_DOMAINS:
+        return {"ok": False, "error": "unknown domain"}
+    if not PART_KEY_RE.match(part):
+        return {"ok": False, "error": "bad part key"}
+    if not 100 <= price <= 50_000_000:
+        return {"ok": False, "error": "price out of range"}
+    import time
+    k = f"{domain}:{part}"
+    try:
+        items = price_store.get(k, [])
+    except Exception:
+        items = []
+    items = (items + [{"price": price, "market": market, "ts": int(time.time())}])[-50:]
+    price_store[k] = items
+    _bump_index(k)
+    return {"ok": True, "count": len(items)}
+
+
+@app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+@modal.fastapi_endpoint(method="POST")
+def community_prices(payload: dict):
+    """Consensus medians per part (needs 3+ reports), rounded to nearest 100."""
+    if not _auth_ok(payload):
+        return {"ok": False, "error": "unauthorized"}
+    import statistics
+    domain = str(payload.get("domain", ""))
+    if domain not in PRICE_DOMAINS:
+        return {"ok": False, "error": "unknown domain"}
+    out = {}
+    try:
+        idx = price_store.get("__index__", [])
+    except Exception:
+        idx = []
+    for k in idx:
+        if not k.startswith(domain + ":"):
+            continue
+        part = k.split(":", 1)[1]
+        try:
+            items = price_store.get(k, [])[-20:]
+        except Exception:
+            continue
+        vals = sorted(i["price"] for i in items if isinstance(i.get("price"), int))
+        if len(vals) >= 3:
+            med = int(statistics.median(vals))
+            out[part] = {"median": med - (med % 100), "count": len(vals)}
+    return {"ok": True, "prices": out}
+
+
+@app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
+@modal.fastapi_endpoint(method="POST")
+def clear_price(payload: dict):
+    """Admin: delete all reports for one part (test-data / spam cleanup)."""
+    if not _auth_ok(payload):
+        return {"ok": False, "error": "unauthorized"}
+    domain = str(payload.get("domain", ""))
+    part = str(payload.get("part", ""))
+    if domain not in PRICE_DOMAINS:
+        return {"ok": False, "error": "unknown domain"}
+    if not PART_KEY_RE.match(part):
+        return {"ok": False, "error": "bad part key"}
+    k = f"{domain}:{part}"
+    try:
+        had = k in price_store
+        if had:
+            del price_store[k]
+        idx = [x for x in price_store.get("__index__", []) if x != k]
+        price_store["__index__"] = idx
+    except Exception as e:
+        return {"ok": False, "error": f"clear failed: {str(e)[:160]}"}
+    return {"ok": True, "cleared": had}
 
 
 @app.local_entrypoint()
