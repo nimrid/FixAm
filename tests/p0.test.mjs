@@ -120,6 +120,19 @@ test("image data URLs use the real format (Muse Image returns WebP bytes)", asyn
   assert.equal(imageMimeFromB64("iVBORw0KGgoAAAANSUhEUgAAAAEA"), "image/png");
 });
 
+test("service worker: registered from root scope, never caches POSTs, has offline fallback", () => {
+  const sw = readFileSync(new URL("../public/sw.js", import.meta.url), "utf8");
+  const layout = readFileSync(new URL("../app/layout.js", import.meta.url), "utf8");
+  const register = readFileSync(new URL("../app/sw-register.js", import.meta.url), "utf8");
+  assert.ok(sw.includes('req.method !== "GET"'), "SW must pass non-GET through");
+  assert.ok(sw.includes("req.mode === \"navigate\""), "SW must handle navigations");
+  assert.ok(sw.includes("offline"), "SW must have an offline fallback");
+  assert.ok(sw.includes("/app") && sw.includes("cache.addAll"), "SW must precache the app shell");
+  assert.ok(register.includes('register("/sw.js")'), "registration must target root-scope /sw.js");
+  assert.ok(register.includes("production"), "SW must not register in dev");
+  assert.ok(layout.includes("ServiceWorkerRegister"), "layout must mount the registrar");
+});
+
 test("health snapshot never leaks secrets and reports demo without a key", () => {
   withEnv({ MODEL_API_KEY: "sk-secret-value", FIXAM_DEMO_MODE: "true", FIXAM_MODAL_SECRET: "modal-secret" }, () => {
     const h = healthSnapshot(process.env);

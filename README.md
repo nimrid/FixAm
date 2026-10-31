@@ -20,7 +20,7 @@
 | Check | Result |
 |---|---|
 | Stack | Next.js 16.4.3 · React 19.3 · Node ≥ 20.9 (3 dependencies, zero UI frameworks) |
-| `npm test` | 12/12 pass (`node --test`, no test framework dependency) |
+| `npm test` | 13/13 pass (`node --test`, no test framework dependency) |
 | `npm run build` | Clean (Turbopack), 12 routes |
 | Models | Muse Spark 1.3 · SAM 3.1 (+ video) · Muse Image 1.0 · Voice Transcribe 1.0 · Files API |
 | Compute | Modal CPU pipeline, deployed and smoke-tested (see [Deploy](#deploy)) |
@@ -125,20 +125,19 @@ lib/            Meta client, domain registry, prompts, community merge,
 lib/domains/    per-domain faults, Naira prices, SAM vocabularies, aliases
 modal_app.py    video pipeline: ffmpeg → Files API → SAM tracking → metrics;
                 Dict-backed community price store
-tests/          12 regression tests (node:test, no framework)
-public/         PWA icons, manifest, demo photo
+tests/          13 regression tests (node:test, no framework)
+public/         PWA icons, manifest, service worker, demo photo
 ```
 
 ## Honest limits
 
-- **PWA is installable but has no service worker** — "offline" today means server reachable + models down (graceful mock fallbacks), not true airplane-mode operation.
+- **Offline is shell-level, not full** — the service worker (`public/sw.js`) precaches the app shell, serves cached GETs, and shows an offline page for navigations; live AI diagnosis (POST) still needs a connection.
 - **Rate limiter is per serverless instance** — an abuse brake, not a distributed quota.
 - **Community prices are cold** — no real reports yet; until 3+ exist per part, the book prices you see are labeled as the book.
 - **30 guided faults** (6/domain) — Spark can reason beyond them, but field validation against real shops hasn't happened yet.
 
 ## Roadmap
 
-- Offline cache (service worker) for genuinely dead networks
 - Field validation: real-shop accuracy checks per domain, Pidgin voice eval
 - More domains (fans, pumps) via the registry; follow-up questions that refine a diagnosis conversationally
 
