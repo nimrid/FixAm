@@ -1,4 +1,5 @@
 import { callTranscribe, isDemoMode } from "../../../lib/meta";
+import { CAPS, bodyTooLarge, fieldTooLarge, rateLimited } from "../../../lib/limits";
 
 // POST { audioBase64, domain? } - 16kHz mono WAV data URL (browser converts via Web Audio).
 const DEMO_TEXT = {
@@ -10,9 +11,15 @@ const DEMO_TEXT = {
 };
 
 export async function POST(req) {
+  const limited = rateLimited(req, { name: "transcribe", limit: 30 });
+  if (limited) return limited;
+  const tooBig = bodyTooLarge(req, 7_000_000);
+  if (tooBig) return tooBig;
   try {
     const { audioBase64, domain = "gen" } = await req.json();
     if (!audioBase64) return Response.json({ error: "audioBase64 required" }, { status: 400 });
+    const audErr = fieldTooLarge(audioBase64, CAPS.audioChars, "Audio");
+    if (audErr) return Response.json({ error: audErr }, { status: 413 });
     if (isDemoMode()) {
       return Response.json({ demo: true, text: DEMO_TEXT[domain] || DEMO_TEXT.gen });
     }

@@ -1,7 +1,12 @@
 import { callModalReportPrice, isDemoMode } from "../../../lib/meta";
+import { bodyTooLarge, rateLimited } from "../../../lib/limits";
 
 // POST { domain, part, price_naira, market? } -> { ok, count }
 export async function POST(req) {
+  const limited = rateLimited(req, { name: "report-price", limit: 30 });
+  if (limited) return limited;
+  const tooBig = bodyTooLarge(req, 16_000);
+  if (tooBig) return tooBig;
   try {
     const { domain, part, price_naira, market = "" } = await req.json();
     if (!domain || !part || !Number.isInteger(price_naira)) {

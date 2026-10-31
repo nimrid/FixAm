@@ -1,8 +1,9 @@
 """FixAm video pipeline on Modal (CPU-only).
 
-Receives a short generator clip, normalizes it with ffmpeg, uploads to the
-Meta Files API, runs SAM 3.1 video tracking on engine + exhaust, and returns
-per-frame tracks, a vibration index, and keyframes for the Spark verdict.
+Receives a short clip (generator, okada, or car at idle), normalizes it with
+ffmpeg, uploads to the Meta Files API, runs SAM 3.1 video tracking on the
+domain's engine subject + exhaust, and returns per-frame tracks, a vibration
+index, and keyframes for the Spark verdict.
 
 Deploy:  FIXAM_MODAL_SECRET=... modal deploy modal_app.py
 Needs MODAL_TOKEN_ID / MODAL_TOKEN_SECRET env vars for auth (see .env).
@@ -38,6 +39,32 @@ BOX_RE = re.compile(
     r"(\d+)<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);w=(\d+);h=(\d+)(?:;c=([\d.]+))?\|>"
 )
 FRAME_RE = re.compile(r"<(\d+)f>")
+
+# Motion domains: what SAM tracks per domain. Mirrors lib/motion.js
+# MOTION_CONFIG (keep in sync). Subject falls back to the whole vehicle/gen
+# if the engine itself is not found (e.g. car bonnet closed).
+MOTION_TRACKS = {
+    "gen": {"label": "generator engine", "subject": "engine", "subject_fallback": "generator", "exhaust": "exhaust pipe"},
+    "okada": {"label": "motorcycle engine", "subject": "motorcycle engine", "subject_fallback": "motorcycle", "exhaust": "exhaust pipe"},
+    "car": {"label": "car engine", "subject": "car engine", "subject_fallback": "car", "exhaust": "exhaust pipe"},
+}
+
+
+def _motion_cfg(domain):
+    return MOTION_TRACKS.get(domain if domain in MOTION_TRACKS else "gen")
+
+
+def _track_subject(meta_base, api_key, file_id, concepts, warnings):
+    """Try each SAM concept in order; return (tracks, concept_used)."""
+    for concept in concepts:
+        try:
+            tracks = _sam_video_track(meta_base, api_key, file_id, concept)
+        except Exception as e:
+            warnings.append(f"{concept} tracking failed: {str(e)[:160]}")
+            continue
+        if tracks:
+            return tracks, concept
+    return {}, concepts[0]
 
 
 def _run(cmd):
@@ -163,7 +190,7 @@ def _auth_ok(payload):
 @app.function(image=image, timeout=600, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
 def _analyze_job(job: dict):
     """Background worker: full pipeline. Spawned by submit_clip."""
-    return _run_analysis(job["api_key"], job["meta_base"], job["raw_b64"])
+    return _run_analysis(job["api_key"], job["meta_base"], job["raw_b64"], job.get("domain", "gen"))
 
 
 @app.function(image=image, env={"FIXAM_MODAL_SECRET": SHARED_SECRET})
@@ -180,10 +207,14 @@ def submit_clip(payload: dict):
         b64 = b64.split(",", 1)[1]
     if len(b64) < 1000 or len(b64) > 44 * 1024 * 1024:
         return {"ok": False, "error": "clip must be 1KB-32MB"}
+    domain = payload.get("domain", "gen")
+    if domain not in MOTION_TRACKS:
+        return {"ok": False, "error": f"motion not available for domain: {domain}"}
     call = _analyze_job.spawn({
         "api_key": api_key,
         "meta_base": payload.get("meta_base", "https://api.meta.ai/v1"),
         "raw_b64": b64,
+        "domain": domain,
     })
     return {"ok": True, "call_id": call.object_id}
 
@@ -217,10 +248,10 @@ def analyze_clip(payload: dict):
     api_key = payload.get("model_api_key", "")
     if not api_key:
         return {"ok": False, "error": "model_api_key missing"}
-    return _run_analysis(api_key, payload.get("meta_base", "https://api.meta.ai/v1"), payload.get("video_b64", ""))
+    return _run_analysis(api_key, payload.get("meta_base", "https://api.meta.ai/v1"), payload.get("video_b64", ""), payload.get("domain", "gen"))
 
 
-def _run_analysis(api_key, meta_base, video_b64):
+def _run_analysis(api_key, meta_base, video_b64, domain="gen"):
     b64 = video_b64 or ""
     if "," in b64:
         b64 = b64.split(",", 1)[1]
@@ -271,16 +302,12 @@ def _run_analysis(api_key, meta_base, video_b64):
         except Exception as e:
             return {"ok": False, "error": f"Files API upload failed: {str(e)[:200]}"}
 
-        tracks = {}
-        for concept in ("engine", "exhaust pipe"):
-            try:
-                tracks[concept] = _sam_video_track(meta_base, api_key, file_id, concept)
-            except Exception as e:
-                warnings.append(f"{concept} tracking failed: {str(e)[:160]}")
-                tracks[concept] = {}
-
-    eng = tracks.get("engine", {})
-    exh = tracks.get("exhaust pipe", {})
+        cfg = _motion_cfg(domain)
+        eng, subject_concept = _track_subject(
+            meta_base, api_key, file_id, [cfg["subject"], cfg["subject_fallback"]], warnings)
+        exh, _exh_concept = _track_subject(
+            meta_base, api_key, file_id, [cfg["exhaust"]], warnings)
+        tracks = {subject_concept: eng, cfg["exhaust"]: exh}
     nframes = max([f for t in tracks.values() for f in t], default=0) + 1
     vib = _vibration_index(eng)
 
@@ -289,6 +316,9 @@ def _run_analysis(api_key, meta_base, video_b64):
 
     return {
         "ok": True,
+        "domain": domain if domain in MOTION_TRACKS else "gen",
+        "subject": cfg["label"],
+        "subject_concept": subject_concept,
         "file_id": file_id,
         "duration_s": round(dur, 2),
         "frames_seen": nframes,

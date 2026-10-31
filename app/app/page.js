@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import "../globals.css";
 import { I } from "../icons";
+import { MOTION_DOMAINS, motionConfig } from "../../lib/motion";
 
 
 
@@ -330,7 +331,7 @@ export default function Home() {
       const res = await fetch("/api/analyze-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clipBase64 })
+        body: JSON.stringify({ clipBase64, domain })
       });
       if (res.status === 413) throw new Error(t("Clip too large to upload. Record a shorter one.", "Video too big. Record short one."));
       const sub = await res.json();
@@ -345,7 +346,7 @@ export default function Home() {
         await sleep(5000);
         const elapsed = Math.round((Date.now() - t0) / 1000);
         setMotionProgress(t(`Tracking motion… ${elapsed}s`, `Dey track motion… ${elapsed}s`));
-        const r = await fetch(`/api/motion-status?id=${encodeURIComponent(sub.call_id)}`);
+        const r = await fetch(`/api/motion-status?id=${encodeURIComponent(sub.call_id)}&domain=${encodeURIComponent(sub.domain || domain)}`);
         const d = await r.json();
         if (d.error) throw new Error(d.error);
         if (d.done) {
@@ -367,11 +368,16 @@ export default function Home() {
     if (!result) return;
     setLoading("diagram");
     try {
-      const part = result.needed_parts?.[0]?.name || result.needed_parts?.[0]?.key || "carburetor";
+      const part = result.needed_parts?.[0]?.name || result.needed_parts?.[0]?.key || "component";
+      // Compute from result directly: the `diagnosis` const is declared
+      // later in this component, so relying on it here was fragile.
+      const diagText = lang === "pidgin"
+        ? (result.diagnosis_pidgin || result.display_diagnosis || "")
+        : (result.diagnosis_en || result.display_diagnosis || "");
       const res = await fetch("/api/diagram", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ diagnosis, part })
+        body: JSON.stringify({ diagnosis: diagText, part, domain })
       });
       const data = await res.json();
       if (data.imageUrl) setDiagram(data.imageUrl);
@@ -468,7 +474,9 @@ export default function Home() {
     const over = mine?.[domain]?.[p.key];
     if (over && typeof over.price === "number") return { value: over.price, tag: "you" };
     const c = community?.[p.key];
-    if (c && typeof c.median === "number") return { value: c.median, tag: `community · ${c.count}` };
+    // Only real community medians (3+ reports) override the book price.
+    // Book seeds (source:"book", count 0) fall through to the static price.
+    if (c && typeof c.median === "number" && c.source !== "book" && (c.count || 0) >= 3) return { value: c.median, tag: `community · ${c.count}` };
     return { value: typeof p.price_naira === "number" ? p.price_naira : null, tag: null };
   }
 
@@ -569,9 +577,9 @@ export default function Home() {
         </div>
 
         <ol className="steps" aria-label="Progress">
-          <li className={s1}><span className="n">{s1 === "done" ? "✓" : "1"}</span>{t("Photo", "Photo")}</li>
-          <li className={s2}><span className="n">{s2 === "done" ? "✓" : "2"}</span>{t("Symptom", "Wetin do")}</li>
-          <li className={s3}><span className="n">{s3 === "done" ? "✓" : "3"}</span>{t("Fix", "Fix am")}</li>
+          <li className={s1} aria-current={s1 === "now" ? "step" : undefined}><span className="n">{s1 === "done" ? "✓" : "1"}</span>{t("Photo", "Photo")}</li>
+          <li className={s2} aria-current={s2 === "now" ? "step" : undefined}><span className="n">{s2 === "done" ? "✓" : "2"}</span>{t("Symptom", "Wetin do")}</li>
+          <li className={s3} aria-current={s3 === "now" ? "step" : undefined}><span className="n">{s3 === "done" ? "✓" : "3"}</span>{t("Fix", "Fix am")}</li>
         </ol>
 
         {!image && !result && (
@@ -666,11 +674,12 @@ export default function Home() {
             </div>
           )}
 
-          {(domain === "gen" || domain === "okada" || domain === "car") && (
+          {MOTION_DOMAINS.includes(domain) && (
           <>
           <hr className="report-sep" />
           <p className="subhead">{I.video(17)} {t("Motion check (optional)", "Motion check (optional)")}</p>
-          <p className="hint">{t("Record 3 seconds of the running gen to check shake and smoke.", "Record 3 seconds of gen wey dey run, make we check shake and smoke.")}</p>
+          <p className="hint">{lang === "pidgin" ? motionConfig(domain).hintPg : motionConfig(domain).hintEn}</p>
+          <p className="hint">{lang === "pidgin" ? motionConfig(domain).filmPg : motionConfig(domain).filmEn}</p>
           {!clip ? (
             <div className="btn-row">
               {!clipFallback ? (
@@ -740,8 +749,13 @@ export default function Home() {
             rows={3}
             placeholder={lang === "pidgin" ? DOMAIN_UI[domain].phPg : DOMAIN_UI[domain].ph}
             value={symptom}
+            maxLength={600}
+            aria-describedby="symptom-count"
             onChange={(e) => setSymptom(e.target.value)}
           />
+          {symptom.length > 480 && (
+            <p id="symptom-count" className="price-note" aria-live="polite">{symptom.length}/600</p>
+          )}
         </section>
 
         {loading === "diagnose" && (
@@ -886,7 +900,7 @@ export default function Home() {
               <div className="verdict-badge">{I.activity(20)}</div>
               <div className="card-head-text">
                 <h2>{t("Motion report", "Motion report")} {motion.fallback && <span className="lvl lvl-mid">offline demo</span>}</h2>
-                <p>{t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")}</p>
+                <p>{t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")} · {motion.metrics?.subject || motion.subject || motionConfig(motion.domain || domain).subjectLabel}</p>
               </div>
             </div>
             <div className="motion-row">

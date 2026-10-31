@@ -130,7 +130,7 @@ export default function Landing() {
           <div>
             <h2>Hear it shake? Prove it.</h2>
             <p>
-              The motion check records 3 seconds of a running engine. A Modal pipeline
+              The motion check records 3 seconds of a running engine — generator, okada, or car at idle. A Modal pipeline
               tracks it frame-by-frame with SAM 3.1 video segmentation, computes a
               vibration index, and Spark judges shake + exhaust smoke against keyframes —
               rendered as a per-frame timeline with peak markers.

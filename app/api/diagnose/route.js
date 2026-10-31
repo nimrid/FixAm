@@ -1,13 +1,21 @@
 import { systemPrompt } from "../../../lib/prompts";
 import { getDomain } from "../../../lib/domains";
 import { callModalCommunity, callSparkDiagnosis, isDemoMode } from "../../../lib/meta";
+import { CAPS, bodyTooLarge, fieldTooLarge, rateLimited } from "../../../lib/limits";
 
 // POST { imageBase64, symptom, lang, parts, domain? } -> strict-JSON diagnosis
 export async function POST(req) {
+  const limited = rateLimited(req, { name: "diagnose", limit: 30 });
+  if (limited) return limited;
+  const tooBig = bodyTooLarge(req, 7_000_000);
+  if (tooBig) return tooBig;
   try {
     const body = await req.json();
     const { symptom = "", lang = "pidgin", parts = [], imageBase64 = null, domain: domainId = "gen" } = body;
     if (!symptom.trim()) return Response.json({ error: "symptom required" }, { status: 400 });
+    if (symptom.length > CAPS.symptomChars) return Response.json({ error: "symptom too long" }, { status: 400 });
+    const imgErr = fieldTooLarge(imageBase64, CAPS.imageChars, "Photo");
+    if (imgErr) return Response.json({ error: imgErr }, { status: 413 });
     const D = getDomain(domainId);
     const faults = D.faults;
     const prices = D.prices;
@@ -46,12 +54,20 @@ export async function POST(req) {
       return Response.json({ ...mockDiagnosis(symptom, lang, D), demo: false, fallback: true, fallback_reason: String(err.message).slice(0, 160) });
     }
 
-    const needed = (parsed.needed_parts || []).map((raw) => {
-      if (typeof raw !== "string") return raw;
-      const norm = raw.toLowerCase().trim().replace(/[\s_]+/g, "-");
+    // Canonical contract: Spark returns part-key strings (see DIAGNOSIS_SCHEMA).
+    // Tolerate {key} objects defensively so a model drift cannot leak raw
+    // objects (without prices) into the UI.
+    const seen = new Set();
+    const needed = (parsed.needed_parts || []).flatMap((raw) => {
+      const rawKey = typeof raw === "string" ? raw : (raw && typeof raw === "object" ? (raw.key || raw.name || "") : "");
+      if (!rawKey) return [];
+      const norm = String(rawKey).toLowerCase().trim().replace(/[\s_]+/g, "-");
       const key = prices[norm] ? norm : (D.aliases[norm] || null);
-      if (key && prices[key]) return { key, ...prices[key] };
-      return { key: norm, name: raw, price_naira: null, market: "Ask market / Jiji" };
+      const resolved = key || norm;
+      if (seen.has(resolved)) return [];
+      seen.add(resolved);
+      if (key && prices[key]) return [{ key, ...prices[key] }];
+      return [{ key: norm, name: String(rawKey), price_naira: null, market: "Ask market / Jiji" }];
     });
     return Response.json({ ...parsed, needed_parts: needed, demo: false, domain: D.id });
   } catch (err) {

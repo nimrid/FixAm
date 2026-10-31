@@ -1,12 +1,19 @@
 import { callSAMParts, callSparkConcepts, isDemoMode } from "../../../lib/meta";
 import { conceptSystem } from "../../../lib/prompts";
 import { getDomain } from "../../../lib/domains";
+import { CAPS, bodyTooLarge, fieldTooLarge, rateLimited } from "../../../lib/limits";
 
 // POST { imageBase64, symptom?, domain? } -> { parts, agentic, domain }
 export async function POST(req) {
+  const limited = rateLimited(req, { name: "segment", limit: 30 });
+  if (limited) return limited;
+  const tooBig = bodyTooLarge(req, 7_000_000);
+  if (tooBig) return tooBig;
   try {
     const { imageBase64, symptom = "", domain: domainId = "gen" } = await req.json();
     if (!imageBase64) return Response.json({ error: "imageBase64 required" }, { status: 400 });
+    const imgErr = fieldTooLarge(imageBase64, CAPS.imageChars, "Photo");
+    if (imgErr) return Response.json({ error: imgErr }, { status: 413 });
     const D = getDomain(domainId);
 
     if (isDemoMode()) {
