@@ -134,11 +134,11 @@ public/         PWA icons, manifest, service worker, demo photo
 - **Offline is shell-level, not full** — the service worker (`public/sw.js`) precaches the app shell, serves cached GETs, and shows an offline page for navigations; live AI diagnosis (POST) still needs a connection.
 - **Rate limiter is per serverless instance** — an abuse brake, not a distributed quota.
 - **Community prices are cold** — no real reports yet; until 3+ exist per part, the book prices you see are labeled as the book.
-- **30 guided faults** (6/domain) — Spark can reason beyond them, but field validation against real shops hasn't happened yet.
+- **30 guided faults** (6/domain) — Spark can reason beyond them. Early field proof: 5 named users, one per domain (gen, okada, solar, phone, car) — see Field Stories on the landing page. Broader real-shop accuracy checks and Pidgin voice eval are still ahead.
 
 ## Roadmap
 
-- Field validation: real-shop accuracy checks per domain, Pidgin voice eval
+- Broader field validation: more real-shop accuracy checks per domain, Pidgin voice eval
 - More domains (fans, pumps) via the registry; follow-up questions that refine a diagnosis conversationally
 
 ---

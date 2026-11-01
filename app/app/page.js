@@ -1,10 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import "../globals.css";
 import { I } from "../icons";
 import { MOTION_DOMAINS, motionConfig } from "../../lib/motion";
-
-
 
 const DOMAIN_UI = {
   gen: {
@@ -49,8 +48,48 @@ const DOMAIN_UI = {
   }
 };
 
+const DEMO_PHOTOS = {
+  gen: { url: "/demo/gen-tiger.jpg", label: "Tiger 2.5kVA Generator", prompt: "Gen dey cough but e no catch, black smoke dey" },
+  okada: { url: "/demo/okada-boxer.jpg", label: "Bajaj Boxer Motorcycle", prompt: "Kick dey turn but e no catch, chain loose" },
+  solar: { url: "/demo/solar-inverter.jpg", label: "Solar Inverter 3.5kVA", prompt: "Inverter dey beep overload, battery quick finish" },
+  phone: { url: "/demo/phone-screen.jpg", label: "Smartphone Repair", prompt: "Battery swell up, phone no dey charge well" }
+};
+
+const QUICK_SYMPTOMS = {
+  gen: [
+    { en: "Coughs but won't start", pg: "Dey cough but e no catch" },
+    { en: "Heavy black smoke from exhaust", pg: "Black smoke dey come out" },
+    { en: "Runs 2 mins then dies", pg: "E go run 2 mins then die" },
+    { en: "No electric power output", pg: "No light output from socket" }
+  ],
+  okada: [
+    { en: "Kick turns but engine won't catch", pg: "Kick dey turn but e no catch" },
+    { en: "Drive chain loose and slapping", pg: "Chain loose dey slap cover" },
+    { en: "Weak front and rear brakes", pg: "Brake weak no dey hold" },
+    { en: "White/blue smoke from exhaust", pg: "Smoke dey come out from exhaust" }
+  ],
+  solar: [
+    { en: "Inverter beeps red overload alarm", pg: "Inverter dey beep overload alarm" },
+    { en: "Battery drops fast after NEPA cuts", pg: "Battery dey quick drop when light go" },
+    { en: "Panels not charging during afternoon", pg: "Panel no dey charge for afternoon" },
+    { en: "Cooling fan making grinding noise", pg: "Fan dey make loud grinding noise" }
+  ],
+  phone: [
+    { en: "Battery swelling and draining rapidly", pg: "Battery swell up, dey quick finish" },
+    { en: "Phone won't charge unless cord is bent", pg: "No dey charge unless cable bend" },
+    { en: "Screen cracked and touch unresponsive", pg: "Screen crack, touch no dey answer" },
+    { en: "Overheating during calls or charging", pg: "Phone dey hot well-well for call" }
+  ],
+  car: [
+    { en: "Temperature gauge red / overheating", pg: "Temperature don red / water boil" },
+    { en: "Clicking sound but engine won't crank", pg: "Dey click but motor no gree crank" },
+    { en: "Squealing noise when pressing brakes", pg: "Brake dey make sharp squeal noise" },
+    { en: "Engine vibration and shaking at idle", pg: "Engine dey shake well-well for idle" }
+  ]
+};
+
 export default function Home() {
-  const [lang, setLang] = useState("pidgin");
+  const [lang, setLang] = useState("en");
   const [domain, setDomain] = useState("gen");
   const [image, setImage] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
@@ -79,6 +118,10 @@ export default function Home() {
   const [repMarket, setRepMarket] = useState("");
   const [repSending, setRepSending] = useState(false);
   const [clipFallback, setClipFallback] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState({});
+  const [copiedToast, setCopiedToast] = useState(false);
+  const [highlightedPart, setHighlightedPart] = useState(null);
+
   const clipFileRef = useRef(null);
   const mediaRef = useRef(null);
   const chunksRef = useRef([]);
@@ -97,6 +140,7 @@ export default function Home() {
     setNotice(null);
     setAgentic(false);
     agenticRef.current = false;
+    setCompletedSteps({});
   }
 
   function startOver() {
@@ -113,7 +157,8 @@ export default function Home() {
     setAgentic(false);
     agenticRef.current = false;
     setSegmented(false);
-    window.scrollTo({ top: 0, behavior: "auto" });
+    setCompletedSteps({});
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function selectDomain(id) {
@@ -133,6 +178,7 @@ export default function Home() {
     setAgentic(false);
     agenticRef.current = false;
     setSegmented(false);
+    setCompletedSteps({});
   }
 
   function onFile(e) {
@@ -159,13 +205,17 @@ export default function Home() {
     });
   }
 
-  async function useDemoPhoto() {
+  async function useDemoPhoto(dom = domain) {
+    const demoInfo = DEMO_PHOTOS[dom] || DEMO_PHOTOS.gen;
     setLoading("demo");
     try {
-      const res = await fetch("/demo/gen-tiger.jpg");
+      const res = await fetch(demoInfo.url);
       if (!res.ok) throw new Error("demo photo missing");
       const dataUrl = await blobToDataUrl(await res.blob());
       setPhoto(await downscaleImage(dataUrl));
+      if (!symptom.trim() && demoInfo.prompt) {
+        setSymptom(demoInfo.prompt);
+      }
     } catch (e) {
       setNotice({ text: t("Could not load the demo photo.", "No fit load demo photo.") });
     }
@@ -226,8 +276,7 @@ export default function Home() {
       symptomRef.current?.focus();
       return;
     }
-    // Stale-parts guard: if parts were found before the symptom existed,
-    // re-segment agentically first so the diagnosis uses the right parts.
+    // Stale-parts guard: if parts were found before symptom existed, re-segment agentically
     let p = partsV;
     if (img && !agenticRef.current) {
       const fresh = await identifyParts(img, sym, dom);
@@ -235,6 +284,7 @@ export default function Home() {
     }
     setLoading("diagnose");
     setDiagram(null);
+    setCompletedSteps({});
     try {
       const res = await fetch("/api/diagnose", {
         method: "POST",
@@ -369,8 +419,6 @@ export default function Home() {
     setLoading("diagram");
     try {
       const part = result.needed_parts?.[0]?.name || result.needed_parts?.[0]?.key || "component";
-      // Compute from result directly: the `diagnosis` const is declared
-      // later in this component, so relying on it here was fragile.
       const diagText = lang === "pidgin"
         ? (result.diagnosis_pidgin || result.display_diagnosis || "")
         : (result.diagnosis_en || result.display_diagnosis || "");
@@ -448,17 +496,45 @@ export default function Home() {
   function whatsappLink() {
     if (!result) return "#";
     const lines = [
-      "FixAm",
+      "FixAm AI Repair Guide",
       (lang === "pidgin" ? "Wahala: " : "Fault: ") + diagnosis,
       "",
+      "Steps to fix:",
       ...(steps || []).slice(0, 5).map((s, i) => `${i + 1}) ${s}`),
       "",
-      `Parts: ~₦${partsTotal.toLocaleString()} | Rewinder: ~₦${(result.shop_cost_naira || 0).toLocaleString()}`
+      `Fair Parts: ~₦${partsTotal.toLocaleString()} | Rewinder: ~₦${(result.shop_cost_naira || 0).toLocaleString()} (Save ~₦${Math.max(0, savings).toLocaleString()})`
     ];
     return `https://wa.me/?text=${encodeURIComponent(lines.join("\n"))}`;
   }
 
-  // Community medians load progressively once a diagnosis exists.
+  async function copyRepairPlan() {
+    if (!result) return;
+    const lines = [
+      "FixAm AI Repair Plan",
+      `Machine: ${domain.toUpperCase()}`,
+      `Fault: ${diagnosis}`,
+      "",
+      "Steps:",
+      ...(steps || []).map((s, i) => `${i + 1}) ${s}`),
+      "",
+      `Parts Cost: ~₦${partsTotal.toLocaleString()}`,
+      `Rewinder/Mechanic Cost: ~₦${(result.shop_cost_naira || 0).toLocaleString()}`,
+      `Estimated Savings: ~₦${Math.max(0, savings).toLocaleString()}`
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 2500);
+    } catch (e) {
+      setNotice({ text: t("Could not copy. Long-press the steps to copy manually.", "No fit copy. Hold the steps to copy by hand.") });
+    }
+  }
+
+  function toggleStep(idx) {
+    setCompletedSteps((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  }
+
+  // Community medians load progressively once a diagnosis exists
   useEffect(() => {
     if (!result?.needed_parts?.length) return;
     let live = true;
@@ -467,16 +543,15 @@ export default function Home() {
       .then((d) => { if (live) setCommunity(d.prices || {}); })
       .catch(() => {});
     return () => { live = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result, domain]);
 
   function effPrice(p) {
     const over = mine?.[domain]?.[p.key];
     if (over && typeof over.price === "number") return { value: over.price, tag: "you" };
     const c = community?.[p.key];
-    // Only real community medians (3+ reports) override the book price.
-    // Book seeds (source:"book", count 0) fall through to the static price.
-    if (c && typeof c.median === "number" && c.source !== "book" && (c.count || 0) >= 3) return { value: c.median, tag: `community · ${c.count}` };
+    if (c && typeof c.median === "number" && c.source !== "book" && (c.count || 0) >= 3) {
+      return { value: c.median, tag: `community · ${c.count}` };
+    }
     return { value: typeof p.price_naira === "number" ? p.price_naira : null, tag: null };
   }
 
@@ -515,7 +590,7 @@ export default function Home() {
     setRepSending(false);
   }
 
-  // Landing "Run demo" deep-link: /app?demo=1 auto-plays the full demo flow.
+  // Landing "Run demo" deep-link: /app?demo=1 auto-plays full demo
   const demoStarted = useRef(false);
   useEffect(() => {
     if (demoStarted.current) return;
@@ -523,7 +598,6 @@ export default function Home() {
       demoStarted.current = true;
       runDemo();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Stepper + smart bottom-bar state
@@ -531,21 +605,28 @@ export default function Home() {
   const s2 = symptom.trim() ? "done" : image ? "now" : "";
   const s3 = result ? "done" : parts.length > 0 ? "now" : "";
   const primary = !image
-    ? { label: t("Take a photo", "Snap photo"), fn: () => fileRef.current?.click(), busy: false, sub: t("Start with a clear photo", "Start with clear photo") }
+    ? { label: t("Take a photo", "Snap photo"), fn: () => fileRef.current?.click(), busy: false, sub: t("Start with a clear photo in daylight", "Start with clear photo") }
     : parts.length === 0 && !segmented
       ? { label: loading === "segment" ? t("Finding parts…", "Dey find parts…") : t("Find parts", "Find parts"), fn: () => identifyParts(), busy: loading === "segment", sub: agentic ? "" : t("Tip: describe the fault first for smarter detection", "Tip: talk wetin do am first") }
       : !result
-        ? { label: loading === "diagnose" ? t("Diagnosing…", "Dey check am…") : t("Diagnose", "Check am"), fn: () => diagnose(), busy: loading === "diagnose", sub: t("Spark reads photo + symptom + parts", "Spark go read photo + wetin you talk") }
+        ? { label: loading === "diagnose" ? t("Diagnosing…", "Dey check am…") : t("Diagnose fault", "Check am"), fn: () => diagnose(), busy: loading === "diagnose", sub: t("Spark reads photo + symptom + parts", "Spark go read photo + wetin you talk") }
         : { label: loading === "diagnose" ? t("Updating…", "Dey update…") : t("Update diagnosis", "Check am again"), fn: () => diagnose(), busy: loading === "diagnose", sub: "" };
 
   return (
     <>
       <header className="appbar">
         <div className="appbar-inner">
-          <div className="brandmark">{I.mark(20)}</div>
-          <div className="brandname">FixAm <span>Naija</span></div>
+          <Link href="/" className="appbar-back" aria-label="Back to home">
+            {I.arrowLeft(18)}
+          </Link>
+          <Link href="/" className="brand-link">
+            <div className="brandmark">{I.mark(20)}</div>
+            <div className="brandname">
+              FixAm <span>{domain.toUpperCase()}</span>
+            </div>
+          </Link>
           <div className="appbar-spacer" />
-          <div className="seg" role="group" aria-label="Language">
+          <div className="seg" role="group" aria-label="Language selection">
             <button aria-pressed={lang === "en"} onClick={() => setLang("en")}>EN</button>
             <button aria-pressed={lang === "pidgin"} onClick={() => setLang("pidgin")}>Pidgin</button>
           </div>
@@ -554,39 +635,59 @@ export default function Home() {
 
       <main className="shell">
         <div className="hero">
+          <span className="hero-badge">{I.sparkles(13)} {t("AI Repair Guide", "AI Repair Guide")}</span>
           <h1>{t("Snap it, fix am.", "Snap am, fix am.")}</h1>
           <p>{lang === "pidgin" ? DOMAIN_UI[domain].heroPg : DOMAIN_UI[domain].hero}</p>
         </div>
 
         <div className="domains" role="group" aria-label={t("What are you fixing?", "Wetin you dey fix?")}>
           <button className="domain" aria-pressed={domain === "gen"} onClick={() => selectDomain("gen")}>
-            {I.plug(22)}<span>Gen</span><small>Tiger · Elepaq</small>
+            <span className="domain-icon">{I.plug(18)}</span>
+            <span>Gen</span>
+            <small>Tiger · Elepaq</small>
           </button>
           <button className="domain" aria-pressed={domain === "okada"} onClick={() => selectDomain("okada")}>
-            {I.bike(22)}<span>Okada</span><small>Boxer · CG</small>
+            <span className="domain-icon">{I.bike(18)}</span>
+            <span>Okada</span>
+            <small>Boxer · CG</small>
           </button>
           <button className="domain" aria-pressed={domain === "solar"} onClick={() => selectDomain("solar")}>
-            {I.sun(22)}<span>Solar</span><small>Panel · Battery</small>
+            <span className="domain-icon">{I.sun(18)}</span>
+            <span>Solar</span>
+            <small>Inverter · Bat</small>
           </button>
           <button className="domain" aria-pressed={domain === "phone"} onClick={() => selectDomain("phone")}>
-            {I.phone(22)}<span>Phone</span><small>Tecno · iPhone</small>
+            <span className="domain-icon">{I.phone(18)}</span>
+            <span>Phone</span>
+            <small>Tecno · iPhone</small>
           </button>
           <button className="domain" aria-pressed={domain === "car"} onClick={() => selectDomain("car")}>
-            {I.car(22)}<span>Car</span><small>Toyota · Honda</small>
+            <span className="domain-icon">{I.car(18)}</span>
+            <span>Car</span>
+            <small>Toyota · Honda</small>
           </button>
         </div>
 
-        <ol className="steps" aria-label="Progress">
-          <li className={s1} aria-current={s1 === "now" ? "step" : undefined}><span className="n">{s1 === "done" ? "✓" : "1"}</span>{t("Photo", "Photo")}</li>
-          <li className={s2} aria-current={s2 === "now" ? "step" : undefined}><span className="n">{s2 === "done" ? "✓" : "2"}</span>{t("Symptom", "Wetin do")}</li>
-          <li className={s3} aria-current={s3 === "now" ? "step" : undefined}><span className="n">{s3 === "done" ? "✓" : "3"}</span>{t("Fix", "Fix am")}</li>
+        <ol className="steps" aria-label="Progress tracker">
+          <li className={s1} aria-current={s1 === "now" ? "step" : undefined}>
+            <span className="n">{s1 === "done" ? "✓" : "1"}</span>
+            <span>{t("Photograph", "Photo")}</span>
+          </li>
+          <li className={s2} aria-current={s2 === "now" ? "step" : undefined}>
+            <span className="n">{s2 === "done" ? "✓" : "2"}</span>
+            <span>{t("Fault details", "Wetin do")}</span>
+          </li>
+          <li className={s3} aria-current={s3 === "now" ? "step" : undefined}>
+            <span className="n">{s3 === "done" ? "✓" : "3"}</span>
+            <span>{t("Repair guide", "Fix am")}</span>
+          </li>
         </ol>
 
         {!image && !result && (
           <div className="demo-banner">
             <div className="demo-text">
-              <strong>{t("New here? See it work first.", "New here? See how e work.")}</strong>
-              <span>{t("Full demo diagnosis on a real generator photo.", "Full demo diagnosis with real gen photo.")}</span>
+              <strong>{I.sparkles(16)} {t("New here? See it work instantly.", "New here? See how e work.")}</strong>
+              <span>{t("Run a full demo diagnosis on real generator machine imagery.", "Full demo diagnosis with real gen photo.")}</span>
             </div>
             <button className="btn btn-primary" onClick={runDemo} disabled={loading !== ""}>
               {t("Run demo", "Run demo")}
@@ -604,26 +705,48 @@ export default function Home() {
           </div>
         )}
 
+        {copiedToast && (
+          <div className="notice" style={{ background: "var(--brand-soft)", borderColor: "var(--brand)", color: "var(--brand-ink-on-soft)" }}>
+            {I.check(18)}
+            <span>{t("Repair plan copied to clipboard!", "Repair plan don copy to clipboard!")}</span>
+          </div>
+        )}
+
         <section className="card" aria-labelledby="photo-h">
           <div className="card-head">
             <span className="card-num">1</span>
             <div className="card-head-text">
-              <h2 id="photo-h">{t("Photograph it", "Snap am")}</h2>
+              <h2 id="photo-h">{t("Photograph your machine", "Snap am")}</h2>
               <p>{lang === "pidgin" ? DOMAIN_UI[domain].photoPg : DOMAIN_UI[domain].photo}</p>
             </div>
           </div>
+
           <div className={`viewfinder${image ? " filled" : ""}`}>
+            {loading === "segment" && <div className="vf-scanline" />}
             {image ? (
               <>
                 <img src={image} alt={t("What you are fixing", "Wetin you dey fix")} />
-                {parts.map((p, i) => (
-                  <div key={i} className="bbox" style={{
-                    left: `${p.box[0] * 100}%`, top: `${p.box[1] * 100}%`,
-                    width: `${(p.box[2] - p.box[0]) * 100}%`, height: `${(p.box[3] - p.box[1]) * 100}%`
-                  }}>
-                    <span className="bbox-label">{p.label} · {(p.confidence * 100).toFixed(0)}%</span>
-                  </div>
-                ))}
+                {parts.map((p, i) => {
+                  const isHovered = highlightedPart === p.label;
+                  return (
+                    <div
+                      key={i}
+                      className="bbox"
+                      style={{
+                        left: `${p.box[0] * 100}%`,
+                        top: `${p.box[1] * 100}%`,
+                        width: `${(p.box[2] - p.box[0]) * 100}%`,
+                        height: `${(p.box[3] - p.box[1]) * 100}%`,
+                        borderColor: isHovered ? "#10b981" : "var(--sam-box)",
+                        boxShadow: isHovered ? "0 0 20px #10b981" : undefined
+                      }}
+                    >
+                      <span className="bbox-label" style={{ background: isHovered ? "#10b981" : undefined }}>
+                        {p.label} · {(p.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  );
+                })}
                 {result && diagnosis && (
                   <div className="verdict-bug" aria-hidden="true">
                     <span className="bug-dot" />
@@ -636,84 +759,132 @@ export default function Home() {
               </>
             ) : (
               <div className="viewfinder-empty">
-                <span className="vf-corner vf-tl" /><span className="vf-corner vf-tr" />
-                <span className="vf-corner vf-bl" /><span className="vf-corner vf-br" />
-                {I.camera(30)}
-                <strong>{t("No photo yet", "No photo yet")}</strong>
-                <span>{t("Use the button below to open your camera.", "Use button for down to open camera.")}</span>
-                {domain === "gen" && (
-                  <div style={{ marginTop: 12 }}>
-                    <button className="btn btn-secondary" onClick={useDemoPhoto} disabled={loading === "demo"}>
-                      {loading === "demo" ? t("Loading…", "Dey load…") : t("Try a demo photo", "Try demo photo")}
+                <span className="vf-corner vf-tl" />
+                <span className="vf-corner vf-tr" />
+                <span className="vf-corner vf-bl" />
+                <span className="vf-corner vf-br" />
+                {I.camera(34)}
+                <strong>{t("Camera Viewfinder Ready", "Camera Ready")}</strong>
+                <span>{t("Snap a clear photo or upload an existing image from your device.", "Snap clear photo or choose photo for your phone.")}</span>
+
+                {DEMO_PHOTOS[domain] && (
+                  <div className="demo-photo-strip">
+                    <span className="demo-strip-label">{t("Or test immediately with sample:", "Or test with sample:")}</span>
+                    <button
+                      className="demo-strip-btn"
+                      onClick={() => useDemoPhoto(domain)}
+                      disabled={loading === "demo"}
+                    >
+                      {I.image(16)}
+                      {loading === "demo" ? t("Loading…", "Dey load…") : t(`Use sample: ${DEMO_PHOTOS[domain].label}`, `Use sample: ${DEMO_PHOTOS[domain].label}`)}
                     </button>
                   </div>
                 )}
               </div>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onFile} aria-hidden="true" tabIndex={-1} />
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onFile}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+
           {loading === "segment" && (
-            <div aria-live="polite">
-              <div className="skel skel-line" style={{ width: "60%" }} />
-              <div className="skel skel-line" style={{ width: "40%" }} />
+            <div aria-live="polite" style={{ marginTop: 14 }}>
+              <div className="skel" style={{ height: 18, width: "65%" }} />
+              <div className="skel skel-line" style={{ width: "45%" }} />
             </div>
           )}
+
           {parts.length > 0 && (
             <>
               <div className="chips">
                 {parts.map((p, i) => (
-                  <span key={i} className="chip"><span className="dot" />{p.label} · {(p.confidence * 100).toFixed(0)}%</span>
+                  <button
+                    key={i}
+                    type="button"
+                    className="chip"
+                    aria-pressed={highlightedPart === p.label}
+                    onMouseEnter={() => setHighlightedPart(p.label)}
+                    onMouseLeave={() => setHighlightedPart(null)}
+                    onClick={() => setHighlightedPart(highlightedPart === p.label ? null : p.label)}
+                  >
+                    <span className="dot" aria-hidden="true" />
+                    {p.label} · {(p.confidence * 100).toFixed(0)}%
+                  </button>
                 ))}
               </div>
-              {agentic && <p className="agent-note">{I.check(16)}<span>{t("Spark chose these parts from your symptom before segmenting.", "Spark choose these parts from wetin you talk before e segment.")}</span></p>}
+              {agentic && (
+                <p className="agent-note">
+                  {I.check(16)}
+                  <span>{t("Spark dynamically chose these parts based on your symptom.", "Spark choose these parts from wetin you talk before e segment.")}</span>
+                </p>
+              )}
             </>
           )}
+
           {image && (
             <div className="btn-row">
-              <button className="btn btn-secondary" onClick={() => fileRef.current?.click()}>{I.retake(18)}{t("Retake", "Snap again")}</button>
+              <button className="btn btn-secondary" onClick={() => fileRef.current?.click()}>
+                {I.retake(18)}
+                {t("Retake / Change photo", "Snap again")}
+              </button>
             </div>
           )}
 
           {MOTION_DOMAINS.includes(domain) && (
-          <>
-          <hr className="report-sep" />
-          <p className="subhead">{I.video(17)} {t("Motion check (optional)", "Motion check (optional)")}</p>
-          <p className="hint">{lang === "pidgin" ? motionConfig(domain).hintPg : motionConfig(domain).hintEn}</p>
-          <p className="hint">{lang === "pidgin" ? motionConfig(domain).filmPg : motionConfig(domain).filmEn}</p>
-          {!clip ? (
-            <div className="btn-row">
-              {!clipFallback ? (
-                <button className="btn btn-secondary" onClick={recordClip} disabled={clipRecording}>
-                  {clipRecording ? t("Recording… hold steady", "Dey record… hold am") : t("Record 3s clip", "Record 3s clip")}
-                </button>
+            <>
+              <hr className="report-sep" />
+              <p className="subhead">
+                {I.video(18)}
+                <span>{t("Vibration & Exhaust Telemetry (Optional)", "Motion & Exhaust Check (Optional)")}</span>
+              </p>
+              <p className="hint">{lang === "pidgin" ? motionConfig(domain).hintPg : motionConfig(domain).hintEn}</p>
+              <p className="hint">{lang === "pidgin" ? motionConfig(domain).filmPg : motionConfig(domain).filmEn}</p>
+              {!clip ? (
+                <div className="btn-row">
+                  {!clipFallback ? (
+                    <button className="btn btn-secondary" onClick={recordClip} disabled={clipRecording}>
+                      {I.activity(18)}
+                      {clipRecording ? t("Recording… hold steady", "Dey record… hold am") : t("Record 3s clip", "Record 3s clip")}
+                    </button>
+                  ) : (
+                    <>
+                      <label className="btn btn-secondary" onClick={() => clipFileRef.current?.click()} style={{ cursor: "pointer" }}>
+                        {I.video(18)}{t("Record with Camera", "Record with Camera")}
+                      </label>
+                      <input ref={clipFileRef} type="file" accept="video/*" capture="camcorder" onChange={onClipFile} aria-hidden="true" tabIndex={-1} />
+                    </>
+                  )}
+                </div>
               ) : (
                 <>
-                  <label className="btn btn-secondary" onClick={() => clipFileRef.current?.click()} style={{ cursor: "pointer" }}>
-                    {I.video(18)}{t("Record with Camera", "Record with Camera")}
-                  </label>
-                  <input ref={clipFileRef} type="file" accept="video/*" capture="camcorder" onChange={onClipFile} aria-hidden="true" tabIndex={-1} />
+                  <video className="video-preview" src={clip} controls playsInline muted />
+                  <div className="btn-row">
+                    {clipFallback ? (
+                      <>
+                        <label className="btn btn-secondary" onClick={() => clipFileRef.current?.click()} style={{ cursor: "pointer" }}>
+                          {I.retake(18)}{t("Re-record", "Record again")}
+                        </label>
+                        <input ref={clipFileRef} type="file" accept="video/*" capture="camcorder" onChange={onClipFile} aria-hidden="true" tabIndex={-1} />
+                      </>
+                    ) : (
+                      <button className="btn btn-secondary" onClick={recordClip} disabled={clipRecording || loading === "motion"}>
+                        {I.retake(18)}{t("Re-record", "Record again")}
+                      </button>
+                    )}
+                    <button className="btn btn-primary" onClick={analyzeMotion} disabled={loading === "motion"}>
+                      {I.activity(18)}{loading === "motion" ? t("Analyzing…", "Dey check…") : t("Analyze motion", "Check motion")}
+                    </button>
+                  </div>
                 </>
               )}
-            </div>
-          ) : (
-            <>
-              <video className="video-preview" src={clip} controls playsInline muted />
-              <div className="btn-row">
-                {clipFallback ? (
-                  <>
-                    <label className="btn btn-secondary" onClick={() => clipFileRef.current?.click()} style={{ cursor: "pointer" }}>{I.retake(18)}{t("Re-record", "Record again")}</label>
-                    <input ref={clipFileRef} type="file" accept="video/*" capture="camcorder" onChange={onClipFile} aria-hidden="true" tabIndex={-1} />
-                  </>
-                ) : (
-                  <button className="btn btn-secondary" onClick={recordClip} disabled={clipRecording || loading === "motion"}>{I.retake(18)}{t("Re-record", "Record again")}</button>
-                )}
-                <button className="btn btn-primary" onClick={analyzeMotion} disabled={loading === "motion"}>
-                  {I.activity(18)}{loading === "motion" ? t("Analyzing…", "Dey check…") : t("Analyze motion", "Check motion")}
-                </button>
-              </div>
             </>
-          )}
-          </>
           )}
         </section>
 
@@ -721,9 +892,11 @@ export default function Home() {
           <div className="card-head">
             <span className="card-num">2</span>
             <div className="card-head-text">
-              <h2 id="symptom-h">{t("Describe the fault", "Talk wetin do am")}</h2>
+              <h2 id="symptom-h">{t("Describe what's wrong", "Talk wetin do am")}</h2>
+              <p>{t("Speak in Pidgin or English, or tap a common symptom below.", "Talk English or Pidgin, or tap wetin match for down.")}</p>
             </div>
           </div>
+
           <div className="mic-row">
             <button
               className={`mic-btn${recording ? " rec" : ""}`}
@@ -732,17 +905,35 @@ export default function Home() {
               aria-label={recording ? t("Stop recording", "Stop") : t("Record voice note", "Record voice")}
               aria-pressed={recording}
             >
-              {recording ? I.stop(20) : I.mic(20)}
+              {recording ? I.stop(22) : I.mic(22)}
             </button>
             <span className="mic-hint">
               {loading === "transcribe"
-                ? t("Transcribing…", "Dey write am…")
+                ? t("Transcribing Pidgin/English with Voice AI…", "Dey write am with Voice AI…")
                 : recording
-                  ? t("Recording… tap to stop.", "Dey record… tap to stop.")
-                  : t("Tap to speak in English or Pidgin.", "Tap, talk English or Pidgin.")}
+                  ? t("Listening… speak clearly and tap to finish.", "Dey record… tap to finish.")
+                  : t("Tap microphone to describe the fault in English or Pidgin.", "Tap mic, talk in English or Pidgin.")}
             </span>
           </div>
-          <label className="field-label" htmlFor="symptom">{t("Symptom", "Wetin happen")}</label>
+
+          {QUICK_SYMPTOMS[domain] && (
+            <div className="symptom-chips">
+              {QUICK_SYMPTOMS[domain].map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="symptom-chip-btn"
+                  onClick={() => setSymptom(lang === "pidgin" ? s.pg : s.en)}
+                >
+                  {lang === "pidgin" ? s.pg : s.en}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <label className="field-label" htmlFor="symptom">
+            {t("Fault description", "Wetin happen")}
+          </label>
           <textarea
             id="symptom"
             ref={symptomRef}
@@ -753,16 +944,18 @@ export default function Home() {
             aria-describedby="symptom-count"
             onChange={(e) => setSymptom(e.target.value)}
           />
-          {symptom.length > 480 && (
-            <p id="symptom-count" className="price-note" aria-live="polite">{symptom.length}/600</p>
+          {symptom.length > 450 && (
+            <p id="symptom-count" className="price-note" aria-live="polite">
+              {symptom.length}/600 characters
+            </p>
           )}
         </section>
 
         {loading === "diagnose" && (
           <section className="card" aria-live="polite" aria-label={t("Loading diagnosis", "Dey load diagnosis")}>
-            <div className="skel" style={{ height: 20, width: "70%" }} />
-            <div className="skel skel-line" />
-            <div className="skel skel-line" style={{ width: "85%" }} />
+            <div className="skel" style={{ height: 24, width: "65%" }} />
+            <div className="skel skel-line" style={{ width: "90%" }} />
+            <div className="skel skel-line" style={{ width: "80%" }} />
             <div className="skel skel-line" style={{ width: "55%" }} />
           </section>
         )}
@@ -772,17 +965,23 @@ export default function Home() {
             <div className="card-head">
               <span className="card-num">3</span>
               <div className="card-head-text">
-                <h2 id="fix-h">{t("Repair plan", "How to fix am")} {(result.fallback || result.demo) && <span className="lvl lvl-mid">offline demo</span>}</h2>
+                <h2 id="fix-h">
+                  {t("AI Diagnosis & Repair Plan", "How to fix am")}
+                  {(result.fallback || result.demo) && <span className="lvl lvl-mid">offline demo</span>}
+                </h2>
               </div>
             </div>
+
             <div className="verdict">
-              <div className="verdict-badge">{I.wrench(20)}</div>
+              <div className="verdict-badge">{I.wrench(24)}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h3>{diagnosis}</h3>
                 {typeof result.confidence === "number" && (
                   <div className="conf-row">
-                    <div className="conf-bar"><i style={{ width: `${Math.round(result.confidence * 100)}%` }} /></div>
-                    <span className="conf-val">{Math.round(result.confidence * 100)}%</span>
+                    <div className="conf-bar">
+                      <i style={{ width: `${Math.round(result.confidence * 100)}%` }} />
+                    </div>
+                    <span className="conf-val">{Math.round(result.confidence * 100)}% match</span>
                   </div>
                 )}
               </div>
@@ -791,9 +990,28 @@ export default function Home() {
             {steps?.length > 0 && (
               <>
                 <hr className="report-sep" />
-                <p className="report-label">{t("Steps", "Wetin to do")}</p>
+                <p className="report-label">
+                  {I.checkCircle(16)}
+                  <span>{t("Step-by-step checklist (tap to complete)", "Wetin to do (tap to check)")}</span>
+                </p>
                 <ol className="timeline">
-                  {steps.map((s, i) => <li key={i}><span className="t-num">{i + 1}</span>{s}</li>)}
+                  {steps.map((s, i) => {
+                    const done = !!completedSteps[i];
+                    return (
+                      <li key={i} className={done ? "step-completed" : ""}>
+                        <button
+                          type="button"
+                          className="step-toggle"
+                          role="checkbox"
+                          aria-checked={done}
+                          onClick={() => toggleStep(i)}
+                        >
+                          <span className="t-num" aria-hidden="true">{done ? "✓" : i + 1}</span>
+                          {s}
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ol>
               </>
             )}
@@ -801,85 +1019,152 @@ export default function Home() {
             {result.tools?.length > 0 && (
               <>
                 <hr className="report-sep" />
-                <p className="tools-row"><strong>{t("Tools", "Tools")}:</strong> {result.tools.join(" · ")}</p>
+                <p className="tools-row">
+                  <strong>{t("Required Tools", "Tools wey you need")}:</strong> {result.tools.join(" · ")}
+                </p>
               </>
             )}
 
             {result.needed_parts?.length > 0 && (
               <>
                 <hr className="report-sep" />
-                <p className="report-label">{t("Parts & prices", "Parts & price")}</p>
+                <p className="report-label">
+                  {I.info(16)}
+                  <span>{t("Fair Market Parts & Prices", "Parts & fair market price")}</span>
+                </p>
                 <ul className="prices">
                   {result.needed_parts.map((p, i) => {
                     const eff = effPrice(p);
                     return (
                       <li key={i}>
-                        <span className="p-name">{p.name || p.key}
+                        <span className="p-name">
+                          {p.name || p.key}
                           {p.market && <span className="p-market">{p.market}</span>}
-                          {eff.tag === "you" && <span className="p-tag">{t("You reported this price", "Na you report this price")}</span>}
-                          {eff.tag && eff.tag !== "you" && <span className="p-tag">{t("Community", "Community")} · {eff.tag.split("·")[1]?.trim()} {t("reports", "reports")}</span>}
-                          <button className="rep-link" onClick={() => { setReporting(p.key); setRepPrice(""); setRepMarket(p.market || ""); }}>{t("Report price", "Report price")}</button>
+                          {eff.tag === "you" && (
+                            <span className="p-tag">{t("You reported this price", "Na you report this price")}</span>
+                          )}
+                          {eff.tag && eff.tag !== "you" && (
+                            <span className="p-tag">{t("Community", "Community")} · {eff.tag.split("·")[1]?.trim()} {t("reports", "reports")}</span>
+                          )}
+                          <button
+                            className="rep-link"
+                            onClick={() => {
+                              setReporting(p.key);
+                              setRepPrice("");
+                              setRepMarket(p.market || "");
+                            }}
+                          >
+                            {t("Report your market price", "Report price")}
+                          </button>
                         </span>
                         <span className="p-dots" aria-hidden="true" />
-                        <span className="p-val">{typeof eff.value === "number" ? `₦${eff.value.toLocaleString()}` : t("Ask market", "Ask market")}</span>
+                        <span className="p-val">
+                          {typeof eff.value === "number" ? `₦${eff.value.toLocaleString()}` : t("Ask market", "Ask market")}
+                        </span>
                       </li>
                     );
                   })}
                 </ul>
+
                 {reporting && (
                   <form className="rep-form" onSubmit={submitReport}>
-                    <p><strong>{t("Correct price for", "Correct price for")} {result.needed_parts.find((x) => x.key === reporting)?.name || reporting}?</strong></p>
+                    <p>
+                      <strong>
+                        {t("What did you pay for", "How much you pay for")} {result.needed_parts.find((x) => x.key === reporting)?.name || reporting}?
+                      </strong>
+                    </p>
                     <div className="rep-row">
-                      <input type="number" inputMode="numeric" min="100" max="50000000" required
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="100"
+                        max="50000000"
+                        required
                         aria-label={t("Correct price in Naira", "Correct price for Naira")}
-                        placeholder="₦" value={repPrice} onChange={(e) => setRepPrice(e.target.value)} />
-                      <input type="text" maxLength={40}
+                        placeholder="₦ Amount"
+                        value={repPrice}
+                        onChange={(e) => setRepPrice(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        maxLength={40}
                         aria-label={t("Market (optional)", "Market (optional)")}
-                        placeholder={t("Market (optional)", "Market (optional)")}
-                        value={repMarket} onChange={(e) => setRepMarket(e.target.value)} />
+                        placeholder={t("Market name e.g. Ladipo", "Market name e.g. Ladipo")}
+                        value={repMarket}
+                        onChange={(e) => setRepMarket(e.target.value)}
+                      />
                     </div>
                     <div className="rep-row">
                       <button className="btn btn-primary" type="submit" disabled={repSending}>
-                        {repSending ? t("Sending…", "Dey send…") : t("Send correction", "Send am")}
+                        {repSending ? t("Submitting…", "Dey send…") : t("Submit price report", "Send am")}
                       </button>
-                      <button className="btn btn-secondary" type="button" onClick={() => setReporting(null)}>{t("Cancel", "Cancel")}</button>
+                      <button className="btn btn-secondary" type="button" onClick={() => setReporting(null)}>
+                        {t("Cancel", "Cancel")}
+                      </button>
                     </div>
                   </form>
                 )}
-                <p className="price-note">{t(`Prices from our ${priceBookMonth} market book — confirm before you buy.`, `Na ${priceBookMonth} market price be this — confirm before you buy.`)}</p>
+                <p className="price-note">
+                  {t(`Grounded in our ${priceBookMonth} Ladipo & Computer Village market book — confirm before paying.`, `Na ${priceBookMonth} market price be this — confirm before you buy.`)}
+                </p>
               </>
             )}
 
-            {danger && <div className="warnblock" style={{ marginTop: 16 }}>{I.alert(18)}<span>{danger}</span></div>}
+            {danger && (
+              <div className="warnblock" style={{ marginTop: 16 }}>
+                {I.alert(18)}
+                <span>{danger}</span>
+              </div>
+            )}
+
             {result.take_to_shop && (
-              <div className="warnblock" style={{ marginTop: 10 }}>{I.alert(18)}
-                <span>{t("Take it to a rewinder. This one is beyond a home fix.", "Carry am go rewinder. This one pass home fix.")}</span>
+              <div className="warnblock" style={{ marginTop: 12 }}>
+                {I.alert(18)}
+                <span>{t("Take it to a professional rewinder or mechanic. This fault requires workshop machinery.", "Carry am go rewinder or mechanic. This one pass home fix.")}</span>
               </div>
             )}
 
             <div className="btn-row">
               <button className="btn btn-secondary" onClick={showDiagram} disabled={loading === "diagram"}>
-                {I.image(18)}{loading === "diagram" ? t("Drawing…", "Dey draw…") : t("Diagram", "Diagram")}
+                {I.image(18)}
+                {loading === "diagram" ? t("Generating blueprint…", "Dey draw…") : t("View diagram", "Diagram")}
+              </button>
+              <button className="btn btn-secondary" onClick={copyRepairPlan}>
+                {I.copy(18)}
+                {t("Copy plan", "Copy plan")}
               </button>
               <a className="btn btn-wa" href={whatsappLink()} target="_blank" rel="noreferrer">
                 {I.chat(18)}WhatsApp
               </a>
             </div>
+
             {diagram && (
               <figure className="figure">
                 <img src={diagram} alt={t("Labeled repair diagram", "Repair diagram")} />
-                <figcaption>{t("AI-generated guide. Always confirm against the real part.", "AI draw am. Confirm with real part.")}</figcaption>
+                <figcaption>{t("AI-generated technical schematic. Cross-check against your physical machine part.", "AI draw am. Confirm with real part.")}</figcaption>
               </figure>
             )}
-            <div style={{ textAlign: "center", marginTop: 6 }}>
-              <button className="link-btn" onClick={startOver}>{t("Start over", "Start again")}</button>
+
+            <div style={{ textAlign: "center", marginTop: 10 }}>
+              <button className="link-btn" onClick={startOver}>
+                {I.retake(14)} {t("Start a new diagnosis", "Start again")}
+              </button>
             </div>
 
             {result.shop_cost_naira > 0 && (
               <div className="savings-band">
-                <div className="s-row"><span>{t("DIY parts", "Do am yourself")}</span><strong>₦{partsTotal.toLocaleString()}</strong></div>
-                <div className="s-row"><span>{t("Rewinder estimate", "Rewinder")}</span><strong>~₦{result.shop_cost_naira.toLocaleString()}</strong></div>
-                <div className="s-row s-save"><span>{t("You save", "You save")}</span><span>~₦{Math.max(0, savings).toLocaleString()}</span></div>
+                <div className="s-row">
+                  <span>{t("DIY replacement parts cost", "Do am yourself parts")}</span>
+                  <strong>₦{partsTotal.toLocaleString()}</strong>
+                </div>
+                <div className="s-row">
+                  <span>{t("Typical rewinder / mechanic charge", "Rewinder estimate")}</span>
+                  <strong>~₦{result.shop_cost_naira.toLocaleString()}</strong>
+                </div>
+                <div className="s-row s-save">
+                  <span>{t("Your potential savings", "Wetin you save")}</span>
+                  <span>~₦{Math.max(0, savings).toLocaleString()}</span>
+                </div>
               </div>
             )}
           </section>
@@ -887,40 +1172,64 @@ export default function Home() {
 
         {loading === "motion" && (
           <section className="card" aria-live="polite" aria-label={t("Analyzing motion", "Dey check motion")}>
-            <div className="skel" style={{ height: 18, width: "55%" }} />
-            <div className="skel skel-line" />
+            <div className="skel" style={{ height: 20, width: "60%" }} />
+            <div className="skel skel-line" style={{ width: "85%" }} />
             <div className="skel skel-line" style={{ width: "70%" }} />
-            <p className="hint" style={{ marginTop: 10 }}>{motionProgress || t("Tracking motion on Modal + SAM… up to a minute.", "Dey track motion… fit reach one minute.")}</p>
+            <p className="hint" style={{ marginTop: 12 }}>
+              {motionProgress || t("Tracking frame-by-frame on Modal + SAM 3.1 video…", "Dey track motion on Modal + SAM…")}
+            </p>
           </section>
         )}
 
         {motion?.verdict && (
-          <section className="card" aria-label={t("Motion report", "Motion report")}>
+          <section className="card" aria-label={t("Motion telemetry report", "Motion report")}>
             <div className="card-head">
-              <div className="verdict-badge">{I.activity(20)}</div>
+              <div className="verdict-badge">{I.activity(22)}</div>
               <div className="card-head-text">
-                <h2>{t("Motion report", "Motion report")} {motion.fallback && <span className="lvl lvl-mid">offline demo</span>}</h2>
-                <p>{t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")} · {motion.metrics?.subject || motion.subject || motionConfig(motion.domain || domain).subjectLabel}</p>
+                <h2>
+                  {t("Motion & Vibration Report", "Motion report")}
+                  {motion.fallback && <span className="lvl lvl-mid">offline demo</span>}
+                </h2>
+                <p>
+                  {t("3-second clip", "3-second clip")} · {motion.metrics?.frames_seen || 0} {t("frames tracked", "frames")} · {motion.metrics?.subject || motion.subject || motionConfig(motion.domain || domain).subjectLabel}
+                </p>
               </div>
             </div>
+
             <div className="motion-row">
-              <p className="report-label">{t("Vibration", "Shake")} <LevelChip level={motion.verdict.vibration_level} /></p>
+              <p className="report-label">
+                {t("Vibration index", "Shake level")} <LevelChip level={motion.verdict.vibration_level} />
+              </p>
               <div className="conf-row">
-                <div className="conf-bar"><i style={{ width: `${Math.min(100, Math.round(((motion.metrics?.engine?.vibration?.index || 0) / 0.04) * 100))}%` }} /></div>
+                <div className="conf-bar">
+                  <i style={{ width: `${Math.min(100, Math.round(((motion.metrics?.engine?.vibration?.index || 0) / 0.04) * 100))}%` }} />
+                </div>
                 <span className="conf-val">{(motion.metrics?.engine?.vibration?.index || 0).toFixed(3)}</span>
               </div>
               {(motion.metrics?.engine?.vibration?.series?.length || 0) > 2 && (
                 <MotionSpark series={motion.metrics.engine.vibration.series} />
               )}
-              <p style={{ marginTop: 8 }}>{lang === "pidgin" ? motion.verdict.vibration_pidgin : motion.verdict.vibration_en}</p>
+              <p style={{ marginTop: 10, fontSize: 14.5 }}>
+                {lang === "pidgin" ? motion.verdict.vibration_pidgin : motion.verdict.vibration_en}
+              </p>
             </div>
+
             <hr className="report-sep" />
             <div>
-              <p className="report-label">{t("Exhaust smoke", "Smoke")} <LevelChip level={motion.verdict.smoke_level} smoke /></p>
-              <p>{lang === "pidgin" ? motion.verdict.smoke_pidgin : motion.verdict.smoke_en}</p>
+              <p className="report-label">
+                {t("Exhaust smoke check", "Exhaust smoke")} <LevelChip level={motion.verdict.smoke_level} smoke />
+              </p>
+              <p style={{ fontSize: 14.5 }}>
+                {lang === "pidgin" ? motion.verdict.smoke_pidgin : motion.verdict.smoke_en}
+              </p>
             </div>
+
             <hr className="report-sep" />
-            <p className="tools-row"><strong>{t("Advice", "Advice")}:</strong> {lang === "pidgin" ? motion.verdict.advice_pidgin : motion.verdict.advice_en}</p>
+            <p className="tools-row">
+              <strong>{t("Safety & Operational Advice", "Advice")}:</strong>{" "}
+              {lang === "pidgin" ? motion.verdict.advice_pidgin : motion.verdict.advice_en}
+            </p>
+
             {motion.keyframes?.length > 0 && (
               <div className="kf-row">
                 {motion.keyframes.map((kf, i) => (
@@ -932,8 +1241,8 @@ export default function Home() {
         )}
 
         <footer>
-          FixAm · {t("Built on Meta Model API", "Built on Meta Model API")}<br />
-          Muse Spark · SAM 3.1 · Muse Image · Voice · Modal
+          FixAm Naija · {t("Built on Meta Model API for Nigeria", "Built on Meta Model API for Nigeria")}<br />
+          Muse Spark 1.3 · SAM 3.1 Vision · Muse Image · Voice Transcribe · Modal Pipeline
         </footer>
       </main>
 
@@ -941,7 +1250,7 @@ export default function Home() {
         <div className="bottombar">
           <div className="bottombar-inner">
             <button className="btn btn-primary" onClick={primary.fn} disabled={primary.busy}>
-              {primary.label}{I.chev(18)}
+              {primary.label} {I.chev(18)}
             </button>
             {primary.sub && !primary.busy && <p className="bottombar-sub">{primary.sub}</p>}
           </div>
